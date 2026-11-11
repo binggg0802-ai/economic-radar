@@ -29,17 +29,17 @@
   "official_release_at": null,
   "official_release_note": "證交所 OpenAPI 未提供每筆資料的官方發布時間戳記；系統改記錄「首次取得時間」。",
   "license_note": "資料來源為臺灣證券交易所。商業使用前須確認證交所 OpenAPI 使用規範與「交易資訊使用管理辦法」。",
-  "last_attempt_at": "2026-11-11T12:02:06+08:00",
+  "last_attempt_at": "2026-11-11T12:03:33+08:00",
   "period": "2026-11-10",
   "value": 42711.92,
   "change": 1050.22,
   "change_pct": 2.52,
   "prev_period": "2026-11-09",
   "prev_value": 41661.7,
-  "status": "ok",
-  "status_label": "已更新：最新一個交易日的收盤資料",
-  "status_reason": "最新收盤日 2026-11-10，即應有的最新交易日",
-  "is_latest": true,
+  "status": "error",
+  "status_label": "更新失敗：本次未取得可信資料，顯示上次成功的資料",
+  "status_reason": "無法連線證交所 OpenAPI：fetch failed",
+  "is_latest": false,
   "expected_period": "2026-11-10",
   "first_seen_at": "2026-11-11T12:02:06+08:00",
   "fetched_at": "2026-11-11T12:02:06+08:00",
@@ -117,5 +117,10 @@
     }
   ],
   "history_points": 7,
-  "revisions": 0
+  "revisions": 0,
+  "fetch_error": {
+    "url": "https://openapi.twse.invalid/v1/exchangeReport/FMTQIK",
+    "fetched_at": "2026-11-11T12:03:37+08:00",
+    "attempt": 3
+  }
 }
