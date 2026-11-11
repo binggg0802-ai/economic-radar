@@ -1,38 +1,38 @@
 {
   "series": {
     "tw_taiex": {
-      "consecutive_failures": 0,
-      "last_run_at": "2026-11-11T13:20:16+08:00",
-      "last_result": "skipped",
-      "last_reason": "收盤前；上一交易日 2026-11-10 已取得",
+      "consecutive_failures": 1,
+      "last_run_at": "2026-11-11T13:21:09+08:00",
+      "last_result": "error",
+      "last_reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）",
       "source_health": {
         "FMTQIK": {
           "name": "FMTQIK",
-          "ok": true,
-          "http_status": 200,
-          "bytes": 975,
-          "checked_at": "2026-11-11T13:19:25+08:00"
+          "ok": false,
+          "http_status": null,
+          "error": "fetch failed（ENOTFOUND）",
+          "checked_at": "2026-11-11T13:21:09+08:00"
         },
         "MI_INDEX": {
           "name": "MI_INDEX",
           "ok": true,
           "http_status": 200,
           "bytes": 46330,
-          "checked_at": "2026-11-11T13:19:25+08:00"
+          "checked_at": "2026-11-11T13:21:09+08:00"
         },
         "holidaySchedule": {
           "name": "holidaySchedule",
           "ok": true,
           "http_status": 200,
           "bytes": 3774,
-          "checked_at": "2026-11-11T13:19:25+08:00"
+          "checked_at": "2026-11-11T13:21:09+08:00"
         }
       },
       "last_success_at": "2026-11-11T13:19:25+08:00",
       "current": {
         "period": "2026-11-10",
         "value": 42711.92,
-        "status": "ok",
+        "status": "error",
         "data_version": 1
       },
       "last_change": {
@@ -40,20 +40,42 @@
           "period": "2026-11-10",
           "value": 42711.92,
           "status": "ok",
-          "data_version": null
+          "data_version": 1
         },
         "after": {
           "period": "2026-11-10",
           "value": 42711.92,
-          "status": "ok",
+          "status": "error",
           "data_version": 1
         },
-        "at": "2026-11-11T13:19:25+08:00"
+        "at": "2026-11-11T13:21:09+08:00"
       },
-      "alert": null
+      "alert": null,
+      "last_failure_at": "2026-11-11T13:21:09+08:00",
+      "last_failure_reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）"
     }
   },
   "recent_runs": [
+    {
+      "at": "2026-11-11T13:21:09+08:00",
+      "series": "tw_taiex",
+      "trigger": "workflow_dispatch",
+      "fault": "bad_host",
+      "result": "error",
+      "reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）",
+      "before": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "ok",
+        "data_version": 1
+      },
+      "after": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "error",
+        "data_version": 1
+      }
+    },
     {
       "at": "2026-11-11T13:20:16+08:00",
       "series": "tw_taiex",
@@ -95,5 +117,5 @@
       }
     }
   ],
-  "generated_at": "2026-11-11T13:20:16+08:00"
+  "generated_at": "2026-11-11T13:21:15+08:00"
 }

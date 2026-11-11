@@ -39,17 +39,17 @@
     "status": "待確認",
     "note": "證交所 OpenAPI 未載明商業使用條件；網站使用條款禁止未經同意的爬蟲。盤後資料用於商業 App 前需向證交所確認。"
   },
-  "last_attempt_at": "2026-11-11T13:19:25+08:00",
+  "last_attempt_at": "2026-11-11T13:21:09+08:00",
   "value": 42711.92,
   "period": "2026-11-10",
   "change": 1050.22,
   "change_pct": 2.52,
   "prev_period": "2026-11-09",
   "prev_value": 41661.7,
-  "status": "ok",
-  "status_label": "已更新",
-  "status_reason": "最新收盤日 2026-11-10，即應有的最新交易日",
-  "is_latest": true,
+  "status": "error",
+  "status_label": "更新失敗",
+  "status_reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）",
+  "is_latest": false,
   "expected_period": "2026-11-10",
   "valid_until": "2026-11-11T18:00:00+08:00",
   "first_seen_at": "2026-11-11T12:02:06+08:00",
@@ -57,9 +57,9 @@
   "last_success_at": "2026-11-11T13:19:25+08:00",
   "data_version": 1,
   "verification": {
-    "status": "verified",
-    "checked_at": "2026-11-11T13:19:25+08:00",
-    "checks_passed": 8
+    "status": "failed",
+    "checked_at": "2026-11-11T13:21:09+08:00",
+    "reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）"
   },
   "validation": {
     "passed": true,
@@ -108,26 +108,15 @@
   },
   "raw_files": [
     {
-      "name": "FMTQIK",
-      "url": "https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK",
-      "http_status": 200,
-      "bytes": 975,
-      "sha256": "185d1020abab688bc143f8bab4ad679c71ce8ffe9a4eacad8a6fc3c370ba2352",
-      "fetched_at": "2026-11-11T13:19:25+08:00",
-      "attempt": 1,
-      "path": "raw/tw_taiex/2026-11-11/1319-FMTQIK.json",
-      "deduplicated": false
-    },
-    {
       "name": "MI_INDEX",
       "url": "https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX",
       "http_status": 200,
       "bytes": 46330,
       "sha256": "d8e427c3676c0d8e18a8343aa4326f71cd476a07fb0c0484529a5d957d32eacb",
-      "fetched_at": "2026-11-11T13:19:26+08:00",
+      "fetched_at": "2026-11-11T13:21:13+08:00",
       "attempt": 1,
       "path": "raw/tw_taiex/2026-11-11/1319-MI_INDEX.json",
-      "deduplicated": false
+      "deduplicated": true
     },
     {
       "name": "holidaySchedule",
@@ -135,10 +124,10 @@
       "http_status": 200,
       "bytes": 3774,
       "sha256": "7644c1a8af784c09f54670fd7413f536b13eb76c54d658058e8873d1aee32117",
-      "fetched_at": "2026-11-11T13:19:26+08:00",
+      "fetched_at": "2026-11-11T13:21:15+08:00",
       "attempt": 1,
       "path": "raw/tw_taiex/2026-11-11/1319-holidaySchedule.json",
-      "deduplicated": false
+      "deduplicated": true
     }
   ],
   "history_points": 7,
