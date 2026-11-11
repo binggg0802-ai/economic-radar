@@ -7,9 +7,21 @@ on:
     branches: [pipeline-test]
     paths-ignore: ['data/**']
   workflow_dispatch:
+    inputs:
+      fault:
+        description: '故障演練（留空＝正常）：bad_host / http_500 / format_change / old_data'
+        required: false
+        default: ''
+      force:
+        description: '1＝略過排程判斷強制抓取；0＝照排程判斷（可驗證重複執行會被略過）'
+        required: false
+        default: '0'
   schedule:
-    # 台北時間週一～五 14:07–17:47 每 20 分鐘（避開整點的高負載時段）
+    # 只有在預設分支才會生效（目前預設分支是 gh-pages，所以這裡尚未啟動）。
+    # 台北時間週一～五 14:07–17:47 每 20 分鐘檢查；是否真的連線由 pipeline/lib/schedule.mjs 依交易日曆決定，
+    # 取得當日收盤即停止，不假設固定時間已公布。週末每天 15:17 一次，處理補行交易日與對帳。
     - cron: '7,27,47 6-9 * * 1-5'
+    - cron: '17 7 * * 0,6'
 
 concurrency:
   group: data-pipeline-taiex
@@ -34,9 +46,30 @@ jobs:
           echo "runner_utc=$(date -u +%FT%TZ)"
           echo "runner_taipei=$(TZ=Asia/Taipei date +%FT%T)"
           node -v
+      - name: Decide run mode
+        id: mode
+        shell: bash
+        env:
+          HEAD_MSG: ${{ github.event.head_commit.message }}
+          IN_FAULT: ${{ github.event.inputs.fault }}
+          IN_FORCE: ${{ github.event.inputs.force }}
+        run: |
+          FAULT=""; FORCE="0"
+          case "${{ github.event_name }}" in
+            push)
+              FAULT=$(printf '%s' "$HEAD_MSG" | grep -oE '\[fault:[a-z_0-9]+\]' | head -1 | sed -E 's/\[fault:(.*)\]/\1/' || true)
+              if printf '%s' "$HEAD_MSG" | grep -q '\[schedule-mode\]'; then FORCE="0"; else FORCE="1"; fi ;;
+            workflow_dispatch) FAULT="$IN_FAULT"; FORCE="${IN_FORCE:-0}" ;;
+            schedule) FAULT=""; FORCE="0" ;;
+          esac
+          echo "fault=$FAULT" >> "$GITHUB_OUTPUT"; echo "force=$FORCE" >> "$GITHUB_OUTPUT"
+          echo "event=${{ github.event_name }} fault=${FAULT:-none} force=$FORCE"
       - name: Fetch → validate → store (TAIEX)
         id: run
         shell: bash
+        env:
+          FAULT_INJECT: ${{ steps.mode.outputs.fault }}
+          FORCE_RUN: ${{ steps.mode.outputs.force }}
         run: |
           set -o pipefail
           node pipeline/run.mjs | tee run-output.json
@@ -55,8 +88,9 @@ jobs:
           git config user.email "economic-radar-bot@users.noreply.github.com"
           git add data
           if git diff --cached --quiet; then echo "no data change"; exit 0; fi
-          STATUS=$(node -e "console.log(require('./data/series/tw_taiex.json').status)")
-          git commit -m "data(tw_taiex): ${STATUS} $(TZ=Asia/Taipei date +%FT%T)"
+          RESULT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('run-output.json','utf8')).result)" || echo unknown)
+          git commit -m "data(tw_taiex): ${RESULT} $(TZ=Asia/Taipei date +%FT%T) [${{ github.event_name }}${{ steps.mode.outputs.fault && format(' fault:{0}', steps.mode.outputs.fault) || '' }}]"
+          git pull --rebase origin pipeline-test || true
           git push origin HEAD:pipeline-test
       - uses: actions/upload-artifact@v4
         if: always()

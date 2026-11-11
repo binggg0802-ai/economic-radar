@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>經濟雷達｜資料管線監控（測試環境）</title>
+<style>
+body{margin:0;background:#050D18;color:#F8FAFC;font-family:"Noto Sans TC",-apple-system,"PingFang TC",sans-serif;line-height:1.55}
+main{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:18px}h2{font-size:15px;margin:22px 0 8px}
+.banner{font-size:12.5px;color:#FDECC8;background:rgba(252,211,138,.1);border:1px solid rgba(252,211,138,.4);border-radius:10px;padding:8px 12px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid rgba(56,189,248,.18);padding:6px 8px;text-align:left;vertical-align:top}th{color:#8EA3BA;font-weight:600}
+.ok{color:#5FF2DA}.bad{color:#FDA4AF}.warn{color:#FCD38A}.muted{color:#8EA3BA}
+.alert{background:rgba(251,113,133,.12);border:1px solid rgba(251,113,133,.5);border-radius:10px;padding:8px 12px;margin:8px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>資料管線監控</h1>
+<div class="banner">測試環境。資料來自 data/monitor/status.json 與 data/manifest.json，每次排程執行（包含略過）都會更新。</div>
+<section id="app">載入中…</section>
+</main>
+<script src="../client/radar-data.js"></script>
+<script>
+const BASE = new URLSearchParams(location.search).get('base') || '../data/';
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const t = (s) => s ? esc(String(s).replace('T', ' ').replace('+08:00', '')) : '—';
+const cls = (r) => ({ ok: 'ok', skipped: 'muted', kept_newer: 'warn', pending: 'warn', stale: 'bad', error: 'bad', no_data: 'bad' }[r] || '');
+const v = (x) => x ? `${esc(x.period ?? '—')} ${x.value != null ? esc(x.value) : '（無數值）'}・${esc(x.status)}` : '—';
+(async () => {
+  const el = document.getElementById('app');
+  try {
+    const [mon, man] = await Promise.all([fetch(BASE + 'monitor/status.json', { cache: 'no-store' }).then((r) => r.json()), RadarData.loadManifest(BASE)]);
+    const alerts = Object.entries(mon.series).filter(([, s]) => s.alert).map(([k, s]) => `<div class="alert">⚠ ${esc(k)}：${esc(s.alert)}。最後失敗原因：${esc(s.last_failure_reason)}</div>`).join('');
+    el.innerHTML = `${alerts}
+    <h2>指標狀態</h2>
+    <table><tr><th>指標</th><th>顯示狀態</th><th>資料日期</th><th>數值</th><th>最後成功</th><th>有效至</th><th>授權</th></tr>
+    ${man.series.map((s) => `<tr><td>${esc(s.name)}<br><span class="muted">${esc(s.code)}</span></td><td class="${cls(s.display_status)}">${esc(s.display_label)}</td><td>${esc(s.period ?? '—')}</td><td>${s.value != null ? esc(s.value) + ' ' + esc(s.unit) : '—'}</td><td>${t(s.last_success_at)}</td><td>${t(s.valid_until)}</td><td>${esc(s.license.status)}</td></tr>`).join('')}</table>
+    <h2>來源健康度與連續失敗</h2>
+    <table><tr><th>指標</th><th>最後執行</th><th>結果</th><th>連續失敗</th><th>端點</th></tr>
+    ${Object.entries(mon.series).map(([k, s]) => `<tr><td>${esc(k)}</td><td>${t(s.last_run_at)}</td><td class="${cls(s.last_result)}">${esc(s.last_result)}<br><span class="muted">${esc(s.last_reason)}</span></td><td>${esc(s.consecutive_failures)}</td><td>${Object.values(s.source_health || {}).map((h) => `<span class="${h.ok ? 'ok' : 'bad'}">${h.ok ? '✓' : '✕'} ${esc(h.name)}${h.http_status ? ' ' + esc(h.http_status) : ''}${h.error ? '：' + esc(h.error) : ''}</span>`).join('<br>')}</td></tr>`).join('')}</table>
+    <h2>最近執行紀錄（最新在上）</h2>
+    <table><tr><th>時間</th><th>觸發</th><th>演練</th><th>結果</th><th>更新前</th><th>更新後</th><th>原因</th></tr>
+    ${mon.recent_runs.map((r) => `<tr><td>${t(r.at)}</td><td>${esc(r.trigger)}</td><td>${esc(r.fault || '')}</td><td class="${cls(r.result)}">${esc(r.result)}</td><td>${v(r.before)}</td><td>${v(r.after)}</td><td>${esc(r.reason)}</td></tr>`).join('')}</table>`;
+  } catch (e) {
+    el.innerHTML = `<div class="alert">無法讀取監控資料：${esc(e.message)}</div>`;
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "source": "U.S. Bureau of Labor Statistics, CPI release schedule",
+  "source_url": "https://www.bls.gov/schedule/news_release/cpi.htm",
+  "verified_on": "2026-11-10",
+  "verified_by": "WebSearch 結果中 bls.gov 官方排程頁內容（October 2026 → Nov. 10, 2026 08:30 AM 等）",
+  "time_zone": "America/New_York",
+  "releases": [
+    { "reference_month": "2026-10", "date": "2026-11-10", "time": "08:30" },
+    { "reference_month": "2026-11", "date": "2026-12-10", "time": "08:30" },
+    { "reference_month": "2026-12", "date": "2027-01-13", "time": "08:30" },
+    { "reference_month": "2027-01", "date": "2027-02-11", "time": "08:30" },
+    { "reference_month": "2027-02", "date": "2027-03-10", "time": "08:30" }
+  ]
+}

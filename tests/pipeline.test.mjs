@@ -128,7 +128,8 @@ test('從未成功且連線失敗 → no_data（前端不得顯示任何數字�
   const { root } = await setup();
   const { record } = await runTaiex({ root, now: at('2026-11-10T16:00:00+08:00'), fetchImpl: mockFetch({}) });
   assert.equal(record.status, 'no_data');
-  assert.equal(record.value, undefined);
+  assert.equal(record.value, null);
+  assert.equal(record.period, null);
 });
 
 test('官方欄位格式改變 → error，不猜欄位', async () => {
@@ -144,8 +145,9 @@ test('官方事後修正數值 → 保留修正紀錄', async () => {
   const rows = JSON.parse(await fx('FMTQIK.json')); rows[4].TAIEX = '42711.95'; rows[4].Change = '1050.25';
   const mi = JSON.parse(await fx('MI_INDEX.json')); mi[1]['收盤指數'] = '42711.95'; mi[1]['漲跌點數'] = '1050.25';
   const f2 = mockFetch({ FMTQIK: JSON.stringify(rows), MI_INDEX: JSON.stringify(mi), holidaySchedule: await fx('holidaySchedule.json') });
-  const { record } = await runTaiex({ root, now: at('2026-11-10T17:00:00+08:00'), fetchImpl: f2 });
+  const { record } = await runTaiex({ root, now: at('2026-11-10T17:00:00+08:00'), fetchImpl: f2, force: true });
   assert.equal(record.revisions, 1);
+  assert.equal(record.data_version, 2);
   const hist = JSON.parse(await readFile(join(root, 'history', 'tw_taiex.json'), 'utf8'));
   assert.deepEqual(hist.revisions[0].from, 42711.92);
 });

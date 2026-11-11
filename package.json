@@ -3,5 +3,5 @@
   "private": true,
   "type": "module",
   "engines": { "node": ">=20" },
-  "scripts": { "test": "node --test tests/*.test.mjs", "pipeline": "node pipeline/run.mjs" }
+  "scripts": { "test": "node --test tests/*.test.mjs tests/*.test.cjs", "pipeline": "node pipeline/run.mjs" }
 }

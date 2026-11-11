@@ -32,6 +32,7 @@ ul{margin:0;padding-left:18px;font-size:13px;color:var(--sub)}li{margin:4px 0}
 <div class="banner">測試環境：此頁只讀取資料管線產生的 JSON，不會顯示任何未經驗證的數字。</div>
 <section id="app" aria-live="polite"><div class="empty">載入中…</div></section>
 </main>
+<script src="../client/radar-data.js"></script>
 <script>
 const SRC = new URLSearchParams(location.search).get('src') || '../data/series/tw_taiex.json';
 const fmt = (v, d = 2) => Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -43,24 +44,24 @@ async function main() {
   try {
     const res = await fetch(SRC, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    r = await res.json();
+    r = RadarData.applyDisplayStatus(await res.json(), new Date());
   } catch (e) {
     el.innerHTML = `<div class="empty" role="alert"><b>無法取得資料檔</b><br>${esc(e.message)}<br>此時不顯示任何數字。</div>`;
     return;
   }
-  const hasValue = r.status !== 'no_data' && typeof r.value === 'number';
+  const hasValue = typeof r.value === 'number';
   const dir = (r.change || 0) > 0 ? 'up' : (r.change || 0) < 0 ? 'down' : '';
   const sign = (r.change || 0) > 0 ? '▲ +' : (r.change || 0) < 0 ? '▼ ' : '';
   el.innerHTML = `
   <article class="card">
-    <div class="row"><b>${esc(r.short_name || r.name)}</b><span class="tag t-type">${esc(r.data_type_label)}</span><span class="tag st-${esc(r.status)}" data-status="${esc(r.status)}">${esc(r.status_label)}</span></div>
+    <div class="row"><b>${esc(r.short_name || r.name)}</b><span class="tag t-type">${esc(r.data_type_label)}</span><span class="tag st-${esc(r.display_status)}" data-status="${esc(r.display_status)}">${esc(r.display_label)}</span></div>
     ${hasValue ? `
       <div class="row" style="margin-top:8px;align-items:baseline"><span class="value" data-testid="value">${fmt(r.value)}</span><span>${esc(r.unit)}</span>
       ${r.change != null ? `<span class="chg ${dir}" data-testid="change">${sign}${fmt(r.change)}（${r.change_pct > 0 ? '+' : ''}${r.change_pct}%）</span>` : ''}</div>
       <div style="font-size:13px;color:var(--muted)" data-testid="period">資料期間：${esc(r.period)} 收盤${r.prev_period ? `；比較 ${esc(r.prev_period)}：${fmt(r.prev_value)}` : ''}</div>
-      ${r.is_latest ? '' : `<div class="notlatest" role="note" data-testid="notlatest">這不是最新資料。${esc(r.status_reason)}</div>`}
-    ` : `<div class="empty" style="margin-top:12px" data-testid="nodata">尚無經驗證的資料，不顯示數字。<br>${esc(r.status_reason)}</div>`}
-    ${r.is_latest ? `<div class="reason">${esc(r.status_reason)}</div>` : ''}
+      ${r.display_is_latest ? '' : `<div class="notlatest" role="note" data-testid="notlatest">這不是最新資料。${esc(r.display_reason)}</div>`}
+    ` : `<div class="empty" style="margin-top:12px" data-testid="nodata">尚無經驗證的資料，不顯示數字。<br>${esc(r.display_reason)}</div>`}
+    ${r.display_is_latest ? `<div class="reason">${esc(r.display_reason)}</div>` : ''}
     <dl>
       <dt>單位</dt><dd>${esc(r.unit)}</dd>
       <dt>資料類型</dt><dd>${esc(r.data_type_label)}・${esc(r.frequency)}</dd>
@@ -69,6 +70,9 @@ async function main() {
       <dt>本次取得</dt><dd>${t(r.fetched_at)}</dd>
       <dt>最後嘗試</dt><dd>${t(r.last_attempt_at)}</dd>
       <dt>最後成功</dt><dd>${t(r.last_success_at)}</dd>
+      <dt>有效至</dt><dd>${t(r.valid_until)}</dd>
+      <dt>資料版本</dt><dd>v${esc(r.data_version ?? '—')}・schema ${esc(r.schema_version)}</dd>
+      <dt>查證狀態</dt><dd>${esc(r.verification?.status === 'verified' ? '已通過驗證' : r.verification?.status === 'failed' ? '本次驗證失敗（顯示上次成功值）' : '—')}</dd>
     </dl>
   </article>
   <h2>原始來源</h2>
@@ -77,7 +81,7 @@ async function main() {
   <ul data-testid="checks">${(r.validation?.checks || []).map((c) => `<li class="${c.ok ? 'ok' : 'bad'}">${c.ok ? '✓' : '✕'} ${esc(c.id)}：${esc(typeof c.detail === 'string' ? c.detail : JSON.stringify(c.detail))}</li>`).join('') || '<li>本次沒有驗證紀錄</li>'}</ul>
   <h2>原始回應存證</h2>
   <ul>${(r.raw_files || []).map((f) => `<li>${esc(f.name)}：HTTP ${esc(f.http_status)}，${esc(f.bytes)} bytes，sha256 ${esc((f.sha256 || '').slice(0, 16))}…</li>`).join('') || '<li>—</li>'}</ul>
-  <p style="font-size:12px;color:var(--muted);margin-top:18px">${esc(r.license_note)}</p>`;
+  <p style="font-size:12px;color:var(--muted);margin-top:18px">授權：${esc(r.license?.status || '待確認')}。${esc(r.license?.note || r.license_note || '')}</p>`;
 }
 main();
 </script>

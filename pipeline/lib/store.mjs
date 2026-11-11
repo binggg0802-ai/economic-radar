@@ -41,3 +41,14 @@ export async function appendRunLog(root, entry) {
   await appendFile(p, JSON.stringify(entry) + '\n');
   return p.slice(root.length + 1);
 }
+
+// 原始回應去重：與上次保存的同名回應 sha256 相同時不再另存一份（重複執行不會堆積相同檔案）。
+export async function saveRawDedup(root, seriesId, stamp, name, text, sha) {
+  const idxPath = join(root, 'raw', seriesId, 'latest.json');
+  const idx = await readJson(idxPath, {});
+  if (idx[name] && idx[name].sha256 === sha) return { path: idx[name].path, deduplicated: true };
+  const path = await saveRaw(root, seriesId, stamp, name, text);
+  idx[name] = { sha256: sha, path, saved_at: stamp };
+  await writeJsonAtomic(idxPath, idx);
+  return { path, deduplicated: false };
+}
