@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "id": "tw_taiex",
+  "name": "臺灣證券交易所 發行量加權股價指數",
+  "short_name": "台灣加權指數",
+  "unit": "點",
+  "data_type": "close",
+  "data_type_label": "收盤數據（盤後公布，非即時）",
+  "frequency": "每個交易日",
+  "publisher": "臺灣證券交易所",
+  "sources": {
+    "primary": {
+      "name": "證交所 OpenAPI：每日市場成交資訊（FMTQIK）",
+      "url": "https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK"
+    },
+    "cross_check": {
+      "name": "證交所 OpenAPI：每日收盤行情－大盤統計資訊（MI_INDEX）",
+      "url": "https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX"
+    },
+    "calendar": {
+      "name": "證交所 OpenAPI：市場開休市日期（holidaySchedule）",
+      "url": "https://openapi.twse.com.tw/v1/holidaySchedule/holidaySchedule"
+    },
+    "human": {
+      "name": "證交所網站：每日市場成交資訊",
+      "url": "https://www.twse.com.tw/zh/trading/historical/fmtqik.html"
+    }
+  },
+  "official_release_at": null,
+  "official_release_note": "證交所 OpenAPI 未提供每筆資料的官方發布時間戳記；系統改記錄「首次取得時間」。",
+  "license_note": "資料來源為臺灣證券交易所。商業使用前須確認證交所 OpenAPI 使用規範與「交易資訊使用管理辦法」。",
+  "last_attempt_at": "2026-11-11T12:02:06+08:00",
+  "period": "2026-11-10",
+  "value": 42711.92,
+  "change": 1050.22,
+  "change_pct": 2.52,
+  "prev_period": "2026-11-09",
+  "prev_value": 41661.7,
+  "status": "ok",
+  "status_label": "已更新：最新一個交易日的收盤資料",
+  "status_reason": "最新收盤日 2026-11-10，即應有的最新交易日",
+  "is_latest": true,
+  "expected_period": "2026-11-10",
+  "first_seen_at": "2026-11-11T12:02:06+08:00",
+  "fetched_at": "2026-11-11T12:02:06+08:00",
+  "last_success_at": "2026-11-11T12:02:06+08:00",
+  "validation": {
+    "passed": true,
+    "checks": [
+      {
+        "id": "rows_present",
+        "ok": true,
+        "detail": "取得 7 筆"
+      },
+      {
+        "id": "not_future",
+        "ok": true,
+        "detail": "最新資料日 2026-11-10，台北今日 2026-11-11"
+      },
+      {
+        "id": "range",
+        "ok": true,
+        "detail": "收盤 42711.92 落在合理範圍 1,000–200,000"
+      },
+      {
+        "id": "ascending_unique",
+        "ok": true,
+        "detail": "日期遞增且不重複"
+      },
+      {
+        "id": "change_consistent",
+        "ok": true,
+        "detail": "6 組相鄰交易日的漲跌點數全部吻合"
+      },
+      {
+        "id": "daily_move_sane",
+        "ok": true,
+        "detail": "單日變動 2.52%（上限 ±10%）"
+      },
+      {
+        "id": "cross_check",
+        "ok": true,
+        "detail": "MI_INDEX 42711.92（1050.22） vs FMTQIK 42711.92（1050.22）"
+      }
+    ]
+  },
+  "raw_files": [
+    {
+      "name": "FMTQIK",
+      "path": "raw/tw_taiex/2026-11-11/1202-FMTQIK.json",
+      "url": "https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK",
+      "http_status": 200,
+      "bytes": 975,
+      "sha256": "185d1020abab688bc143f8bab4ad679c71ce8ffe9a4eacad8a6fc3c370ba2352",
+      "fetched_at": "2026-11-11T12:02:06+08:00",
+      "attempt": 1
+    },
+    {
+      "name": "MI_INDEX",
+      "path": "raw/tw_taiex/2026-11-11/1202-MI_INDEX.json",
+      "url": "https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX",
+      "http_status": 200,
+      "bytes": 46330,
+      "sha256": "d8e427c3676c0d8e18a8343aa4326f71cd476a07fb0c0484529a5d957d32eacb",
+      "fetched_at": "2026-11-11T12:02:08+08:00",
+      "attempt": 1
+    },
+    {
+      "name": "holidaySchedule",
+      "path": "raw/tw_taiex/2026-11-11/1202-holidaySchedule.json",
+      "url": "https://openapi.twse.com.tw/v1/holidaySchedule/holidaySchedule",
+      "http_status": 200,
+      "bytes": 3774,
+      "sha256": "7644c1a8af784c09f54670fd7413f536b13eb76c54d658058e8873d1aee32117",
+      "fetched_at": "2026-11-11T12:02:08+08:00",
+      "attempt": 1
+    }
+  ],
+  "history_points": 7,
+  "revisions": 0
+}
