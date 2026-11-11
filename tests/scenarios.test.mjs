@@ -174,3 +174,22 @@ test('排程：BLS 依官方日程與美東時區；主計總處日程未核對 
   assert.equal(decideScheduledRelease(at('2026-12-10T21:40:00+08:00'), { period: '2026-11', status: 'ok' }, bls).run, false);
   assert.equal(decideScheduledRelease(at('2026-12-06T16:30:00+08:00'), null, dg).run, false);
 });
+
+test('通知：連續 3 次更新失敗才發警示（避免偶發斷線洗版）；資料逾期立即警示；恢復後解除', async () => {
+  const { root, fetchImpl } = await env();
+  await runTaiex({ root, now: at('2026-11-10T16:00:00+08:00'), fetchImpl });
+  const M = async () => (await J(join(root, 'monitor', 'status.json'))).series.tw_taiex;
+  for (const [i, t] of ['14:10', '14:30', '14:50'].entries()) {
+    await runTaiex({ root, now: at(`2026-11-11T${t}:00+08:00`), fetchImpl, fault: 'bad_host' });
+    const s = await M();
+    if (i < 2) assert.equal(s.alert, null); else { assert.match(s.alert, /連續 3 次失敗/); assert.equal(s.alert_changed, true); }
+  }
+  // 恢復：官方仍只有 11/10、隔天 09:05 → 資料逾期，警示內容改變
+  const st = await runTaiex({ root, now: at('2026-11-12T09:05:00+08:00'), fetchImpl });
+  assert.equal(st.record.status, 'stale');
+  assert.equal(st.record.value, 42711.92);
+  assert.match((await M()).alert, /資料逾期/);
+  // 同樣狀態再跑一次：警示不變，不重複通知
+  await runTaiex({ root, now: at('2026-11-12T09:35:00+08:00'), fetchImpl });
+  assert.equal((await M()).alert_changed, false);
+});
