@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>經濟雷達｜資料管線測試頁（台灣加權指數）</title>
+<style>
+:root{--bg:#050D18;--card:#102234;--brand:#00E5C3;--blue:#38BDF8;--text:#F8FAFC;--sub:#B8C7D9;--muted:#8EA3BA;--alert:#FB7185;--line:rgba(56,189,248,.18)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans TC",-apple-system,"PingFang TC",sans-serif;line-height:1.6}
+main{max-width:420px;margin:0 auto;padding:16px 16px 40px}
+.banner{font-size:12.5px;color:#FDECC8;background:rgba(252,211,138,.1);border:1px solid rgba(252,211,138,.4);border-radius:12px;padding:8px 12px;margin-bottom:14px}
+.card{background:linear-gradient(170deg,rgba(16,34,52,.96),rgba(8,18,31,.96));border:1px solid var(--line);border-radius:22px;padding:18px 16px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:999px}
+.t-type{background:rgba(56,189,248,.15);color:#8FD8FB}
+.st-ok{background:rgba(0,229,195,.15);color:#5FF2DA}.st-pending{background:rgba(252,211,138,.15);color:#FCD38A}
+.st-stale,.st-error{background:rgba(251,113,133,.15);color:#FDA4AF}.st-no_data{background:rgba(184,199,217,.15);color:#B8C7D9}
+.value{font-size:36px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.chg{font-size:15px;font-weight:700}.up{color:#FB7185}.down{color:#34D399}
+.reason{margin-top:10px;font-size:14px;color:var(--sub)}
+.notlatest{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:13.5px;background:rgba(251,113,133,.1);border:1px solid rgba(251,113,133,.45);color:#FFE4E8}
+dl{margin:16px 0 0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px}dt{color:var(--muted)}dd{margin:0;word-break:break-all}
+h2{font-size:15px;margin:22px 0 8px}
+a{color:var(--brand)}
+ul{margin:0;padding-left:18px;font-size:13px;color:var(--sub)}li{margin:4px 0}
+.ok{color:#5FF2DA}.bad{color:#FDA4AF}
+.empty{padding:28px 18px;border:1px dashed rgba(184,199,217,.3);border-radius:18px;text-align:center;color:var(--sub)}
+</style>
+</head>
+<body>
+<main>
+<div class="banner">測試環境：此頁只讀取資料管線產生的 JSON，不會顯示任何未經驗證的數字。</div>
+<section id="app" aria-live="polite"><div class="empty">載入中…</div></section>
+</main>
+<script>
+const SRC = new URLSearchParams(location.search).get('src') || '../data/series/tw_taiex.json';
+const fmt = (v, d = 2) => Number(v).toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const t = (s) => s ? esc(s.replace('T', ' ').replace('+08:00', '')) + '（台北）' : '—';
+async function main() {
+  const el = document.getElementById('app');
+  let r;
+  try {
+    const res = await fetch(SRC, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    r = await res.json();
+  } catch (e) {
+    el.innerHTML = `<div class="empty" role="alert"><b>無法取得資料檔</b><br>${esc(e.message)}<br>此時不顯示任何數字。</div>`;
+    return;
+  }
+  const hasValue = r.status !== 'no_data' && typeof r.value === 'number';
+  const dir = (r.change || 0) > 0 ? 'up' : (r.change || 0) < 0 ? 'down' : '';
+  const sign = (r.change || 0) > 0 ? '▲ +' : (r.change || 0) < 0 ? '▼ ' : '';
+  el.innerHTML = `
+  <article class="card">
+    <div class="row"><b>${esc(r.short_name || r.name)}</b><span class="tag t-type">${esc(r.data_type_label)}</span><span class="tag st-${esc(r.status)}" data-status="${esc(r.status)}">${esc(r.status_label)}</span></div>
+    ${hasValue ? `
+      <div class="row" style="margin-top:8px;align-items:baseline"><span class="value" data-testid="value">${fmt(r.value)}</span><span>${esc(r.unit)}</span>
+      ${r.change != null ? `<span class="chg ${dir}" data-testid="change">${sign}${fmt(r.change)}（${r.change_pct > 0 ? '+' : ''}${r.change_pct}%）</span>` : ''}</div>
+      <div style="font-size:13px;color:var(--muted)" data-testid="period">資料期間：${esc(r.period)} 收盤${r.prev_period ? `；比較 ${esc(r.prev_period)}：${fmt(r.prev_value)}` : ''}</div>
+      ${r.is_latest ? '' : `<div class="notlatest" role="note" data-testid="notlatest">這不是最新資料。${esc(r.status_reason)}</div>`}
+    ` : `<div class="empty" style="margin-top:12px" data-testid="nodata">尚無經驗證的資料，不顯示數字。<br>${esc(r.status_reason)}</div>`}
+    ${r.is_latest ? `<div class="reason">${esc(r.status_reason)}</div>` : ''}
+    <dl>
+      <dt>單位</dt><dd>${esc(r.unit)}</dd>
+      <dt>資料類型</dt><dd>${esc(r.data_type_label)}・${esc(r.frequency)}</dd>
+      <dt>官方發布時間</dt><dd>${r.official_release_at ? t(r.official_release_at) : esc(r.official_release_note)}</dd>
+      <dt>首次取得</dt><dd>${t(r.first_seen_at)}</dd>
+      <dt>本次取得</dt><dd>${t(r.fetched_at)}</dd>
+      <dt>最後嘗試</dt><dd>${t(r.last_attempt_at)}</dd>
+      <dt>最後成功</dt><dd>${t(r.last_success_at)}</dd>
+    </dl>
+  </article>
+  <h2>原始來源</h2>
+  <ul>${Object.values(r.sources || {}).map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.name)}</a></li>`).join('')}</ul>
+  <h2>驗證結果</h2>
+  <ul data-testid="checks">${(r.validation?.checks || []).map((c) => `<li class="${c.ok ? 'ok' : 'bad'}">${c.ok ? '✓' : '✕'} ${esc(c.id)}：${esc(typeof c.detail === 'string' ? c.detail : JSON.stringify(c.detail))}</li>`).join('') || '<li>本次沒有驗證紀錄</li>'}</ul>
+  <h2>原始回應存證</h2>
+  <ul>${(r.raw_files || []).map((f) => `<li>${esc(f.name)}：HTTP ${esc(f.http_status)}，${esc(f.bytes)} bytes，sha256 ${esc((f.sha256 || '').slice(0, 16))}…</li>`).join('') || '<li>—</li>'}</ul>
+  <p style="font-size:12px;color:var(--muted);margin-top:18px">${esc(r.license_note)}</p>`;
+}
+main();
+</script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+name: data-pipeline-test (TAIEX)
+
+# 測試階段：只在 pipeline-test 分支推送時執行，輸出寫回本分支的 data/。
+# 不碰 gh-pages（正式網站）。schedule 只會在預設分支生效，正式啟用前需另行設定（見 docs/ARCHITECTURE.md）。
+on:
+  push:
+    branches: [pipeline-test]
+    paths-ignore: ['data/**']
+  workflow_dispatch:
+  schedule:
+    # 台北時間週一～五 14:07–17:47 每 20 分鐘（避開整點的高負載時段）
+    - cron: '7,27,47 6-9 * * 1-5'
+
+concurrency:
+  group: data-pipeline-taiex
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  taiex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Unit tests (fixtures, no network)
+        run: npm test
+      - name: Runner info
+        run: |
+          echo "runner_utc=$(date -u +%FT%TZ)"
+          echo "runner_taipei=$(TZ=Asia/Taipei date +%FT%T)"
+          node -v
+      - name: Fetch → validate → store (TAIEX)
+        id: run
+        run: node pipeline/run.mjs | tee run-output.json
+        continue-on-error: true
+      - name: Summary
+        if: always()
+        run: |
+          echo '### TAIEX pipeline' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat run-output.json >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit data (status is recorded even when the source failed)
+        if: always()
+        run: |
+          git config user.name "economic-radar-bot"
+          git config user.email "economic-radar-bot@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then echo "no data change"; exit 0; fi
+          STATUS=$(node -e "console.log(require('./data/series/tw_taiex.json').status)")
+          git commit -m "data(tw_taiex): ${STATUS} $(TZ=Asia/Taipei date +%FT%T)"
+          git push origin HEAD:pipeline-test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: taiex-run-${{ github.run_id }}
+          path: |
+            data/
+            run-output.json
+          retention-days: 30
+      - name: Fail the job if the pipeline reported error/no_data
+        if: steps.run.outcome == 'failure'
+        run: exit 1
