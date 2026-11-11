@@ -5,7 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runTaiex } from '../pipeline/run.mjs';
 import { rocToIso, toNumber } from '../pipeline/lib/util.mjs';
-import { expectedPeriod, parseHolidays } from '../pipeline/sources/tw_taiex.mjs';
+import { parseHolidays } from '../pipeline/sources/tw_taiex.mjs';
+import { twCloseFreshness, decideTwRun } from '../pipeline/lib/schedule.mjs';
 
 const fx = async (n) => readFile(new URL('./fixtures/' + n, import.meta.url), 'utf8');
 const at = (s) => new Date(s); // 傳入含 +08:00 的時間字串
@@ -70,17 +71,32 @@ test('隔天 15:00 官方尚未公布 → pending，且 is_latest=false', async 
   assert.match(record.status_reason, /尚未/);
 });
 
-test('隔天 19:00 仍沒有 → stale（逾期），不冒充最新', async () => {
+test('隔天 19:00 官方仍未更新 → 仍是 pending（實測 OpenAPI 晚於 18:10 才更新，不提早判逾期）', async () => {
   const { root, fetchImpl } = await setup();
   const { record } = await runTaiex({ root, now: at('2026-11-11T19:00:00+08:00'), fetchImpl });
+  assert.equal(record.status, 'pending');
+  assert.equal(record.valid_until, '2026-11-12T09:00:00+08:00');
+});
+
+test('超過下一交易日 09:00 仍沒有 → stale（逾期），不冒充最新', async () => {
+  const { root, fetchImpl } = await setup();
+  const { record } = await runTaiex({ root, now: at('2026-11-12T09:05:00+08:00'), fetchImpl });
   assert.equal(record.status, 'stale');
   assert.equal(record.is_latest, false);
 });
 
-test('週末與休市日：期望日回推到最近交易日', () => {
+test('週末與休市日：期限順延到下一個交易日 09:00', () => {
   const hol = parseHolidays([{ Name: '測試休市', Date: '1151112', Description: '' }]);
-  assert.equal(expectedPeriod(at('2026-11-14T12:00:00+08:00'), []).expected, '2026-11-13');
-  assert.equal(expectedPeriod(at('2026-11-13T10:00:00+08:00'), hol).expected, '2026-11-11');
+  // 週五 11/13 收盤 → 下一交易日是週一 11/16；週末不算逾期
+  assert.equal(twCloseFreshness('2026-11-13', at('2026-11-15T20:00:00+08:00'), []).state, 'ok');
+  // 11/11 收盤，11/12 休市 → 期限順延到 11/13 09:00
+  const f = twCloseFreshness('2026-11-10', at('2026-11-12T10:00:00+08:00'), hol);
+  assert.equal(f.state, 'pending');
+  assert.equal(f.deadline, '2026-11-13T09:00:00+08:00');
+  // 「市場無交易，僅辦理結算交割作業」不算交易日
+  const h2 = parseHolidays([{ Name: '市場無交易，僅辦理結算交割作業', Date: '1151112', Description: '' }]);
+  assert.equal(twCloseFreshness('2026-11-11', at('2026-11-12T15:00:00+08:00'), h2).state, 'ok');
+  assert.equal(decideTwRun(at('2026-11-12T15:00:00+08:00'), { value: 1, period: '2026-11-11', status: 'ok' }, h2).run, false);
 });
 
 test('漲跌點數與收盤不吻合 → 驗證失敗，不發布新值，保留上次成功值並標示非最新', async () => {
@@ -90,7 +106,7 @@ test('漲跌點數與收盤不吻合 → 驗證失敗，不發布新值，保留
   bad.push({ Date: '1151111', TradeValue: '1', TAIEX: '43000.00', Change: '999.99' });
   const f2 = mockFetch({ FMTQIK: JSON.stringify(bad), MI_INDEX: await fx('MI_INDEX.json'), holidaySchedule: await fx('holidaySchedule.json') });
   const { record } = await runTaiex({ root, now: at('2026-11-11T16:00:00+08:00'), fetchImpl: f2 });
-  assert.equal(record.status, 'error');
+  assert.equal(record.status, 'source_anomaly');
   assert.equal(record.is_latest, false);
   assert.equal(record.value, 42711.92);
   assert.equal(record.period, '2026-11-10');

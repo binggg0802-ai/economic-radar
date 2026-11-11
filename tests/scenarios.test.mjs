@@ -39,7 +39,7 @@ test('S1 正常公布：11/10 16:00 取得當日收盤 → 已更新，schema v2
   assert.equal(r.period, '2026-11-10');
   assert.equal(r.verification.status, 'verified');
   assert.equal(r.data_version, 1);
-  assert.equal(r.valid_until, '2026-11-11T18:00:00+08:00');
+  assert.equal(r.valid_until, '2026-11-12T09:00:00+08:00');
   assert.equal(r.license.status, '待確認');
 });
 
@@ -70,11 +70,13 @@ test('S3 API 中斷（網域無法解析／HTTP 500）→ 更新失敗，保留�
   assert.equal(m.series.tw_taiex.source_health.FMTQIK.ok, false);
 });
 
-test('S4 格式改變（欄位改名）→ 更新失敗，不猜欄位，不發布', async () => {
+test('S4 格式改變（欄位改名）→ 來源異常，不猜欄位，不發布', async () => {
   const { root, fetchImpl } = await env();
   await runTaiex({ root, now: at('2026-11-10T16:00:00+08:00'), fetchImpl });
   const { record: r } = await runTaiex({ root, now: at('2026-11-11T16:00:00+08:00'), fetchImpl, fault: 'format_change' });
-  assert.equal(r.status, 'error');
+  assert.equal(r.status, 'source_anomaly');
+  assert.equal(r.status_label, '來源異常');
+  assert.equal(r.retained_freshness.state, 'pending'); // 保留的 11/10 在 11/11 收盤公布前仍屬等待中
   assert.match(r.status_reason, /格式不符/);
   assert.equal(r.value, 42711.92);
   assert.equal(r.data_version, 1);
@@ -85,7 +87,7 @@ test('S5 重複執行：排程自動略過；強制重跑也不改版本、不�
   const first = await runTaiex({ root, now: at('2026-11-10T16:00:00+08:00'), fetchImpl });
   const skip = await runTaiex({ root, now: at('2026-11-10T16:20:00+08:00'), fetchImpl });
   assert.equal(skip.log.result, 'skipped');
-  assert.match(skip.log.reason, /已取得/);
+  assert.match(skip.log.reason, /無新的交易日收盤待取得/);
   const again = await runTaiex({ root, now: at('2026-11-10T16:40:00+08:00'), fetchImpl, force: true });
   assert.equal(again.record.data_version, 1);
   assert.equal(again.record.first_seen_at, first.record.first_seen_at);
@@ -103,20 +105,23 @@ test('S6 非交易日：週六取得週五收盤 → 已更新；週日排程略
   assert.equal(sat.record.period, '2026-11-06');
   assert.equal(sat.record.status, 'ok');
   assert.equal(sat.record.expected_period, '2026-11-06');
+  assert.equal(sat.record.next_due_period, '2026-11-09');
   let calls = 0;
   const counting = async (...a) => { calls++; return fetchImpl(...a); };
   const sun = await runTaiex({ root, now: at('2026-11-08T15:00:00+08:00'), fetchImpl: counting });
   assert.equal(sun.log.result, 'skipped');
-  assert.match(sun.log.reason, /非交易日/);
+  assert.match(sun.log.reason, /無新的交易日收盤待取得.*2026-11-09 尚未收盤/);
   assert.equal(calls, 0);
-  assert.equal(sat.record.valid_until, '2026-11-09T18:00:00+08:00');
+  assert.equal(sat.record.valid_until, '2026-11-10T09:00:00+08:00');
 });
 
 test('S7 舊資料不得覆蓋新資料：官方端點回傳較舊日期 → 保留較新的值', async () => {
   const { root, fetchImpl } = await env();
   await runTaiex({ root, now: at('2026-11-10T16:00:00+08:00'), fetchImpl });
   const { record: r, log } = await runTaiex({ root, now: at('2026-11-10T17:00:00+08:00'), fetchImpl, fault: 'old_data', force: true });
-  assert.equal(log.result, 'kept_newer');
+  assert.equal(log.result, 'source_anomaly');
+  assert.equal(r.status_label, '來源異常');
+  assert.equal(r.is_latest, false);
   assert.equal(r.period, '2026-11-10');
   assert.equal(r.value, 42711.92);
   assert.equal(r.data_version, 1);

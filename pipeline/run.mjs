@@ -2,9 +2,9 @@ import { join } from 'node:path';
 import { fetchText, isoTaipei, sha256, addDays } from './lib/util.mjs';
 import { readJson, writeJsonAtomic, saveRaw, saveRawDedup, upsertHistory, appendRunLog } from './lib/store.mjs';
 import { validateTaiex } from './lib/validate.mjs';
-import { decideTwClose, isTwseTradingDay } from './lib/schedule.mjs';
+import { decideTwRun, twCloseFreshness, closeDeadline, nextTradingDayAfter, TW_CLOSE } from './lib/schedule.mjs';
 import { REGISTRY } from './registry.mjs';
-import { META, parseFmtqik, parseMiIndex, parseHolidays, expectedPeriod } from './sources/tw_taiex.mjs';
+import { META, parseFmtqik, parseMiIndex, parseHolidays } from './sources/tw_taiex.mjs';
 
 export const SCHEMA_VERSION = 2;
 
@@ -15,6 +15,7 @@ export const STATUS_LABEL = {
   error: '更新失敗',
   stale: '資料逾期',
   no_data: '從未成功取得',
+  source_anomaly: '來源異常',
   not_connected: '尚未接入'
 };
 
@@ -34,12 +35,6 @@ export function faultFetch(fetchImpl, fault) {
   };
 }
 
-function at18(iso) { return iso + 'T18:00:00+08:00'; }
-function nextTradingDay(iso, holidays) {
-  let d = addDays(iso, 1);
-  for (let i = 0; i < 30 && !isTwseTradingDay(d, holidays); i++) d = addDays(d, 1);
-  return d;
-}
 
 export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fetch, fault = null, force = false, trigger = 'manual' } = {}) {
   const started = isoTaipei(now);
@@ -61,7 +56,7 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
 
   // 0. 排程判斷：只在官方可能已公布、且尚未取得時才連線（不在固定時間假設已公布）
   if (!force) {
-    const d = decideTwClose(now, prev, cachedCal ? cachedCal.holidays : [], { open_min: 14 * 60 });
+    const d = decideTwRun(now, prev, cachedCal ? cachedCal.holidays : []);
     step('schedule', true, d);
     if (!d.run) return finish(prev, 'skipped', d.reason);
   }
@@ -77,15 +72,19 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
   };
   const keepPrev = (status, reason, extra = {}) => {
     const has = prev && prev.value != null;
+    const fr = has ? twCloseFreshness(prev.period, now, cachedCal ? cachedCal.holidays : []) : null;
     const s = has ? status : 'no_data';
     return Object.assign({}, prev || {}, base, {
       status: s, status_label: STATUS_LABEL[s], status_reason: has ? reason : `從未成功取得經驗證的資料。本次：${reason}`,
       is_latest: false, verification: { status: 'failed', checked_at: started, reason },
       last_success_at: prev ? prev.last_success_at || null : null, data_version: prev ? prev.data_version || 0 : 0,
-      value: has ? prev.value : null, period: has ? prev.period : null
+      value: has ? prev.value : null, period: has ? prev.period : null,
+      // 保留值本身的新鮮度（例如：更新失敗，但保留的 11/10 收盤在今日收盤公布前仍是最新一筆）
+      retained_freshness: fr ? { state: fr.state, label: STATUS_LABEL[fr.state], reason: fr.reason } : null
     }, extra);
   };
-  const fail = async (reason, extra) => { const rec = keepPrev('error', reason, extra); await writeJsonAtomic(seriesPath, rec); return finish(rec, rec.status, reason); };
+  // kind：'error'＝連線／HTTP 失敗（更新失敗）；'source_anomaly'＝官方有回應但內容異常（格式改變、驗證不過、日期倒退）
+  const fail = async (reason, extra, kind = 'error') => { const rec = keepPrev(kind, reason, extra); await writeJsonAtomic(seriesPath, rec); return finish(rec, rec.status, reason); };
 
   const f = faultFetch(fetchImpl, fault);
   const raw_files = [];
@@ -123,7 +122,7 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
     step('parse', true, { rows: rows.length, cross: cross ? cross.date : null, holidays: holidays.length, calendar: calendarSrc });
   } catch (e) {
     step('parse', false, { error: e.message });
-    return fail(`官方回應格式不符，已停止更新：${e.message}`, { raw_files });
+    return fail(`官方回應格式不符，已停止更新：${e.message}`, { raw_files }, 'source_anomaly');
   }
 
   // 3. 數值驗證 + 4. 日期檢查 + 5. 官方來源交叉核對（validateTaiex 內含 range / not_future / change_consistent / cross_check）
@@ -133,7 +132,7 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
   step('validate', passed, checks);
   if (!passed) {
     const failed = checks.filter((c) => !c.ok).map((c) => `${c.id}：${c.detail}`).join('；');
-    return fail(`驗證未通過，新資料不發布：${failed}`, { validation: { passed: false, checks }, raw_files });
+    return fail(`驗證未通過，新資料不發布：${failed}`, { validation: { passed: false, checks }, raw_files }, 'source_anomaly');
   }
 
   const last = rows[rows.length - 1], prevRow = rows[rows.length - 2] || null;
@@ -142,18 +141,15 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
   if (prev && prev.period && prev.value != null && last.date < prev.period) {
     const reason = `官方端點本次回傳的最新日期 ${last.date} 早於已保存的 ${prev.period}，保留較新的資料，不覆蓋`;
     step('regression_guard', false, reason);
-    const rec = Object.assign({}, prev, { last_attempt_at: started, last_guard: { at: started, reason } });
+    const rec = keepPrev('source_anomaly', reason, { last_guard: { at: started, reason } });
     await writeJsonAtomic(seriesPath, rec);
-    return finish(rec, 'kept_newer', reason);
+    return finish(rec, 'source_anomaly', reason);
   }
   step('regression_guard', true, prev && prev.period ? `新 ${last.date} ≥ 舊 ${prev.period}` : '無舊資料');
 
   // 6. 判定狀態
-  const exp = expectedPeriod(now, holidays);
-  let status, reason;
-  if (last.date >= exp.expected) { status = 'ok'; reason = `最新收盤日 ${last.date}，即應有的最新交易日`; }
-  else if (exp.waiting_for_today) { status = 'pending'; reason = `今日（${exp.expected}）為交易日，官方尚未公布收盤；目前顯示 ${last.date} 的收盤`; }
-  else { status = 'stale'; reason = `應有 ${exp.expected} 的收盤，但官方最新只到 ${last.date}`; }
+  const fr = twCloseFreshness(last.date, now, holidays);
+  const status = fr.state, reason = fr.reason;
 
   // 7. 儲存
   const same = prev && prev.period === last.date && prev.value === last.close;
@@ -163,16 +159,17 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
     change_pct: prevRow ? Math.round((last.close / prevRow.close - 1) * 10000) / 100 : null,
     prev_period: prevRow ? prevRow.date : null, prev_value: prevRow ? prevRow.close : null,
     status, status_label: STATUS_LABEL[status], status_reason: reason, is_latest: status === 'ok',
-    expected_period: exp.expected,
+    expected_period: status === 'ok' ? last.date : fr.due, next_due_period: fr.due,
     // 超過這個時間仍沒有更新的資料，前端一律顯示「資料逾期」（即使排程整個停擺也不會誤標最新）
-    valid_until: at18(nextTradingDay(last.date, holidays)),
+    valid_until: closeDeadline(nextTradingDayAfter(last.date, holidays), holidays),
+    freshness_rule: TW_CLOSE.deadline_note,
     first_seen_at: same ? prev.first_seen_at : started, fetched_at: started, last_success_at: started,
     data_version: same ? prev.data_version || 1 : (prev && prev.data_version ? prev.data_version + 1 : 1),
     verification: { status: 'verified', checked_at: started, checks_passed: checks.length },
     validation: { passed: true, checks }, raw_files,
     history_points: hist.points.length, revisions: hist.revisions.length
   });
-  delete rec.last_guard;
+  delete rec.last_guard; delete rec.retained_freshness;
   await writeJsonAtomic(seriesPath, rec);
   return finish(rec, status, reason);
 }
@@ -182,7 +179,7 @@ export async function updateMonitor(root, log, rec) {
   const p = join(root, 'monitor', 'status.json');
   const m = await readJson(p, { series: {}, recent_runs: [] });
   const s = m.series[log.series] || { consecutive_failures: 0 };
-  const failed = ['error', 'no_data'].includes(log.result);
+  const failed = ['error', 'no_data', 'source_anomaly'].includes(log.result);
   s.last_run_at = log.started_at;
   s.last_result = log.result;
   s.last_reason = log.reason;
@@ -192,7 +189,14 @@ export async function updateMonitor(root, log, rec) {
   s.last_success_at = rec ? rec.last_success_at || null : null;
   s.current = rec ? { period: rec.period ?? null, value: rec.value ?? null, status: rec.status, data_version: rec.data_version ?? null } : null;
   if (log.result !== 'skipped') s.last_change = { before: log.before, after: log.after, at: log.started_at };
-  s.alert = s.consecutive_failures >= 3 ? `連續 ${s.consecutive_failures} 次失敗，需要人工處理` : null;
+  const prevAlert = s.alert || null;
+  s.alert = s.consecutive_failures >= 3 ? `連續 ${s.consecutive_failures} 次失敗，需要人工處理`
+    : log.result === 'source_anomaly' ? '官方來源回應異常（格式、驗證或日期倒退），新資料未發布'
+    : log.result === 'stale' || (log.result === 'skipped' && rec && rec.status === 'stale') ? '資料逾期：超過應取得期限仍無新收盤'
+    : null;
+  s.alert_changed = (s.alert || null) !== prevAlert;
+  if (s.alert && s.alert_changed) s.alert_since = log.started_at;
+  if (!s.alert) s.alert_since = null;
   m.series[log.series] = s;
   m.recent_runs = [{ at: log.started_at, series: log.series, trigger: log.trigger, fault: log.fault, result: log.result, reason: log.reason, before: log.before, after: log.after || null }, ...m.recent_runs].slice(0, 50);
   m.generated_at = isoTaipei(new Date());
@@ -228,6 +232,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const trigger = process.env.GITHUB_EVENT_NAME || 'manual';
   const { record, log } = await runTaiex({ root, fault, force, trigger });
   await writeManifest(root);
-  console.log(JSON.stringify({ result: log.result, reason: log.reason, before: log.before, after: log.after, source_health: log.source_health, steps: log.steps.map((s) => `${s.name}:${s.ok ? 'ok' : 'FAIL'}`) }, null, 2));
-  if (['error', 'no_data'].includes(log.result)) process.exitCode = 1;
+  const mon = await readJson(join(root, 'monitor', 'status.json'), { series: {} });
+  const ms = mon.series[META.id] || {};
+  console.log(JSON.stringify({ alert: ms.alert || null, alert_changed: !!ms.alert_changed, result: log.result, reason: log.reason, before: log.before, after: log.after, source_health: log.source_health, steps: log.steps.map((s) => `${s.name}:${s.ok ? 'ok' : 'FAIL'}`) }, null, 2));
+  // 需要人處理的結果讓 Actions 顯示紅燈（GitHub 會寄失敗通知）；「尚未公布」是正常等待，不算失敗
+  // 「資料逾期」只在剛發生時亮紅燈一次（之後由 GitHub Issue 持續追蹤），避免每次排程都寄信
+  if (['error', 'no_data', 'source_anomaly'].includes(log.result) || (log.result === 'stale' && ms.alert_changed)) process.exitCode = 1;
 }

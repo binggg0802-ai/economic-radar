@@ -1,0 +1,144 @@
+name: data-update (TAIEX)
+
+# 正式資料更新流程。
+# - 程式在 main 分支；已驗證的資料只寫入 data 分支；正式網站 gh-pages 完全不碰。
+# - schedule 只在「預設分支」生效：預設分支改為 main 之後才會自動執行。
+# - cron 只負責叫醒；要不要連線、資料狀態如何判定，由 pipeline/lib/schedule.mjs 依交易日、休市日與實際取得紀錄決定。
+on:
+  schedule:
+    # 以下為 UTC；台北時間 = UTC+8。避開整點，降低 GitHub 排程延遲或略過的機率。
+    - cron: '7,27,47 6-10 * * 1-5'   # 週一～五 14:07–18:47，每 20 分鐘
+    - cron: '7 11-15 * * 1-5'        # 週一～五 19:07–23:07，每小時
+    - cron: '7,37 23 * * 0-4'        # 週一～五 07:07、07:37（補抓前一交易日）
+    - cron: '7,37 0 * * 1-5'         # 週一～五 08:07、08:37（09:00 逾期期限前最後檢查）
+    - cron: '17 7 * * 0,6'           # 週六、日 15:17（補行交易日與對帳，平常會被略過）
+  workflow_dispatch:
+    inputs:
+      fault:
+        description: '故障演練（留空＝正常）：bad_host / http_500 / format_change / old_data。演練結果不會寫入 data 分支'
+        required: false
+        default: ''
+      force:
+        description: '1＝略過排程判斷強制抓取；0＝照排程判斷'
+        required: false
+        default: '0'
+  push:
+    branches: [main]
+    paths: ['pipeline/**', 'tests/**', 'client/**', 'package.json', '.github/workflows/data-update.yml']
+
+concurrency:
+  group: data-update
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # 只用來 push data 分支
+  issues: write     # 異常時開 Issue 通知
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm test
+
+  update:
+    needs: test
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Checkout data branch
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: store
+      - name: Runner timing (排程延遲紀錄)
+        run: |
+          echo "event=${{ github.event_name }} schedule='${{ github.event.schedule }}'"
+          echo "runner_utc=$(date -u +%FT%TZ) runner_taipei=$(TZ=Asia/Taipei date +%FT%T)"
+      - name: Decide run mode
+        id: mode
+        shell: bash
+        env:
+          IN_FAULT: ${{ github.event.inputs.fault }}
+          IN_FORCE: ${{ github.event.inputs.force }}
+        run: |
+          FAULT=""; FORCE="0"; ROOT="store"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then FAULT="$IN_FAULT"; FORCE="${IN_FORCE:-0}"; fi
+          if [ -n "$FAULT" ]; then
+            # 故障演練：在複本上執行，不寫入 data 分支，也不發通知
+            rm -rf /tmp/faultstore && cp -r store /tmp/faultstore && ROOT=/tmp/faultstore
+          fi
+          echo "fault=$FAULT" >> "$GITHUB_OUTPUT"; echo "force=$FORCE" >> "$GITHUB_OUTPUT"; echo "root=$ROOT" >> "$GITHUB_OUTPUT"
+          echo "fault=${FAULT:-none} force=$FORCE root=$ROOT"
+      - name: Fetch → validate → store
+        id: run
+        shell: bash
+        env:
+          DATA_ROOT: ${{ steps.mode.outputs.root }}
+          FAULT_INJECT: ${{ steps.mode.outputs.fault }}
+          FORCE_RUN: ${{ steps.mode.outputs.force }}
+        run: |
+          set -o pipefail
+          node pipeline/run.mjs | tee run-output.json
+        continue-on-error: true
+      - name: Summary
+        if: always()
+        run: |
+          echo '### TAIEX data-update' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat run-output.json >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Commit to data branch (only verified pipeline output; skipped for fault drills)
+        if: always() && steps.mode.outputs.fault == ''
+        working-directory: store
+        run: |
+          git config user.name "economic-radar-bot"
+          git config user.email "economic-radar-bot@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "no data change"; exit 0; fi
+          RESULT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('../run-output.json','utf8')).result)" || echo unknown)
+          git commit -q -m "data(tw_taiex): ${RESULT} $(TZ=Asia/Taipei date +%FT%T) [${{ github.event_name }}]"
+          for i in 1 2 3; do git push origin HEAD:data && exit 0; git pull --rebase origin data; done
+          echo "push to data branch failed"; exit 1
+      - name: Alert via GitHub Issue (open on new alert, close on recovery)
+        if: always() && steps.mode.outputs.fault == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          [ -f run-output.json ] || exit 0
+          ALERT=$(node -e "const o=JSON.parse(require('fs').readFileSync('run-output.json','utf8'));console.log(o.alert===null?'null':o.alert)")
+          CHANGED=$(node -e "console.log(JSON.parse(require('fs').readFileSync('run-output.json','utf8')).alert_changed)")
+          RESULT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('run-output.json','utf8')).result)")
+          echo "alert=$ALERT changed=$CHANGED result=$RESULT"
+          [ "$CHANGED" = "true" ] || exit 0
+          gh label create data-alert --color B60205 --description "資料管線警示" --force >/dev/null 2>&1 || true
+          OPEN=$(gh issue list --label data-alert --state open --json number -q '.[0].number')
+          if [ "$ALERT" != "null" ]; then
+            BODY="結果：${RESULT}"$'\n'"警示：${ALERT}"$'\n'"執行紀錄：${RUN_URL}"$'\n\n'"監控檔：data 分支 monitor/status.json。前端會顯示最後一次成功驗證的數值與原始日期，不會標示為最新。"
+            if [ -n "$OPEN" ]; then gh issue comment "$OPEN" --body "$BODY"; else gh issue create --title "資料管線警示：台灣加權指數" --label data-alert --body "$BODY"; fi
+          elif [ -n "$OPEN" ]; then
+            gh issue close "$OPEN" --comment "已恢復：${RESULT}。${RUN_URL}"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: data-update-${{ github.run_id }}
+          path: |
+            ${{ steps.mode.outputs.root }}/series/
+            ${{ steps.mode.outputs.root }}/monitor/
+            run-output.json
+          retention-days: 30
+      - name: Fail the job when the pipeline needs attention
+        if: steps.run.outcome == 'failure'
+        run: exit 1

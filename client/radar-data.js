@@ -5,7 +5,7 @@
 //     即使排程整個停擺、JSON 還寫著「已更新」，也不會把舊資料標成最新。
 //  3. 沒有經驗證的數值（從未成功取得／尚未接入／讀檔失敗）時，value 一律為 null，頁面不得顯示數字。
 (function (global) {
-  var LABEL = { ok: '已更新', pending: '尚未公布', error: '更新失敗', stale: '資料逾期', no_data: '從未成功取得', not_connected: '尚未接入', load_error: '更新失敗' };
+  var LABEL = { ok: '已更新', pending: '尚未公布', error: '更新失敗', stale: '資料逾期', no_data: '從未成功取得', source_anomaly: '來源異常', not_connected: '尚未接入', load_error: '更新失敗' };
 
   function applyDisplayStatus(r, now) {
     now = now || new Date();
@@ -15,7 +15,13 @@
     else if (r.valid_until && now > new Date(r.valid_until) && (r.status === 'ok' || r.status === 'pending')) {
       out.display_status = 'stale';
       out.display_reason = '超過預期更新時間（' + r.valid_until.replace('T', ' ').replace('+08:00', '') + ' 台北）仍沒有新資料，以下為 ' + r.period + ' 的資料。';
-    } else { out.display_status = r.status; }
+    } else {
+      out.display_status = r.status;
+      // 更新失敗／來源異常時，說明保留的是哪一天的資料
+      if ((r.status === 'error' || r.status === 'source_anomaly') && r.period) {
+        out.display_reason = (r.status_reason || '') + '。目前顯示最後一次成功驗證的 ' + r.period + ' 資料（取得於 ' + String(r.last_success_at || '').replace('T', ' ').replace('+08:00', '') + '）。';
+      }
+    }
     out.display_label = LABEL[out.display_status] || out.display_status;
     out.display_reason = out.display_reason || r.status_reason || '';
     out.display_is_latest = out.display_status === 'ok';

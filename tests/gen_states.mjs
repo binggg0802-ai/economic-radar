@@ -10,7 +10,7 @@ const out = 'preview/states'; await mkdir(out, { recursive: true });
 const cases = [
   ['ok', '2026-11-10T16:00:00+08:00', good, false],
   ['pending', '2026-11-11T15:00:00+08:00', good, false],
-  ['stale', '2026-11-11T19:00:00+08:00', good, false],
+  ['stale', '2026-11-12T09:05:00+08:00', good, false],
   ['error', '2026-11-11T16:00:00+08:00', { FMTQIK: new Error('ECONNRESET') }, true],
   ['no_data', '2026-11-10T16:00:00+08:00', {}, false]
 ];

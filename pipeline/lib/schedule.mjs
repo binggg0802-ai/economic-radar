@@ -73,3 +73,42 @@ export function decideScheduledRelease(now, record, calendar, { after_min = 5, w
   }
   return { run: false, reason: '目前不在任何官方公布時段內' };
 }
+
+// ---- 證交所收盤資料的新鮮度判斷（2026-11-11 依實測修正） ----
+// 實測：證交所 OpenAPI 當日收盤在 18:10 仍未更新（13:19–18:10 回應位元組完全相同），
+// 因此不再用「當日 18:00」當逾期門檻。改為：某交易日 D 的收盤，只要在「D 之後下一個交易日的 09:00（開盤前）」
+// 之前取得都算正常的「尚未公布」；超過才算「資料逾期」。這個門檻是暫定值，會依實際首次取得時間調整。
+export const TW_CLOSE = { close_min: 13 * 60 + 30, deadline_hhmm: '09:00', deadline_note: '暫定：下一交易日 09:00（開盤前）。依實測首次取得時間調整。' };
+
+export function nextTradingDayAfter(iso, holidays) {
+  let d = addDays(iso, 1);
+  for (let i = 0; i < 40 && !isTwseTradingDay(d, holidays); i++) d = addDays(d, 1);
+  return d;
+}
+
+// 交易日 D 的收盤最晚應在何時取得（台北時間 ISO 字串）
+export function closeDeadline(D, holidays, cfg = TW_CLOSE) {
+  return `${nextTradingDayAfter(D, holidays)}T${cfg.deadline_hhmm}:00+08:00`;
+}
+
+// 依已保存的最新資料日期判斷新鮮度：ok／pending／stale
+//   M = 已保存日期之後的下一個交易日；M 尚未收盤 → ok；M 已收盤但未過期限 → pending；已過期限 → stale
+export function twCloseFreshness(lastDate, now, holidays, cfg = TW_CLOSE) {
+  const p = taipeiParts(now);
+  if (!lastDate) return { state: 'no_data', due: null, deadline: null };
+  const M = nextTradingDayAfter(lastDate, holidays);
+  const closed = M < p.date || (M === p.date && p.minutes >= cfg.close_min);
+  if (!closed) return { state: 'ok', due: M, deadline: closeDeadline(M, holidays, cfg), reason: `下一個交易日 ${M} 尚未收盤，${lastDate} 即為最新收盤` };
+  const deadline = closeDeadline(M, holidays, cfg);
+  if (now < new Date(deadline)) return { state: 'pending', due: M, deadline, reason: `${M} 已收盤，官方尚未公布收盤資料（最晚應於 ${deadline.slice(0, 16).replace('T', ' ')} 前取得）；目前顯示 ${lastDate} 的收盤` };
+  return { state: 'stale', due: M, deadline, reason: `${M} 的收盤應於 ${deadline.slice(0, 16).replace('T', ' ')} 前取得，至今仍只有 ${lastDate} 的資料` };
+}
+
+// 排程判斷（取代 decideTwClose）：只有「有新的交易日收盤待取得」或「上次執行失敗需重試」時才連線
+export function decideTwRun(now, record, holidays) {
+  if (!record || record.value == null) return { run: true, reason: '尚未有任何成功資料，需取得' };
+  if (['error', 'source_anomaly'].includes(record.status)) return { run: true, reason: `上次結果為 ${record.status}，重試` };
+  const f = twCloseFreshness(record.period, now, holidays);
+  if (f.state === 'ok') return { run: false, reason: `無新的交易日收盤待取得（${f.reason}）` };
+  return { run: true, reason: f.state === 'pending' ? `等待 ${f.due} 收盤公布，檢查官方是否已更新` : `${f.due} 收盤已逾期，持續檢查` };
+}
