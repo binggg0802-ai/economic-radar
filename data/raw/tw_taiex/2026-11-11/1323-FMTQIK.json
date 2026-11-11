@@ -1,1 +1,8 @@
-[{"Date":"1151102","TradeVolume":"10422514115","TradeValue":"799687507911","Transaction":"4104242","TAIEX":"44920.14","Change":"-291.69"},{"Date":"1151103","TradeVolume":"15218510001","TradeValue":"1002035660990","Transaction":"7682883","TAIEX":"43307.54","Change":"-1612.60"},{"Date":"1151104","TradeVolume":"15601136570","TradeValue":"1176930442854","Transaction":"7098597","TAIEX":"42948.91","Change":"-358.63"},{"Date":"1151105","TradeVolume":"14971065133","TradeValue":"987098883153","Transaction":"6951911","TAIEX":"41574.72","Change":"-1374.19"},{"Date":"1151106","TradeVolume":"19339729647","TradeValue":"1321071858650","Transaction":"8402054","TAIEX":"39701.64","Change":"-1873.08"}]
+[
+{"Date":"1151102","TradeVolume":"10422514115","TradeValue":"799687507911","Transaction":"4104242","TAIEX":"44920.14","Change":"-291.69"},
+{"Date":"1151103","TradeVolume":"15218510001","TradeValue":"1002035660990","Transaction":"7682883","TAIEX":"43307.54","Change":"-1612.60"},
+{"Date":"1151104","TradeVolume":"15601136570","TradeValue":"1176930442854","Transaction":"7098597","TAIEX":"42948.91","Change":"-358.63"},
+{"Date":"1151105","TradeVolume":"14971065133","TradeValue":"987098883153","Transaction":"6951911","TAIEX":"41574.72","Change":"-1374.19"},
+{"Date":"1151106","TradeVolume":"19339729647","TradeValue":"1321071858650","Transaction":"8402054","TAIEX":"39701.64","Change":"-1873.08"},
+{"Date":"1151109","TradeVolume":"12160730783","TradeValue":"877025617232","Transaction":"4256975","TAIEX":"41661.70","Change":"1960.06"},
+{"Date":"1151110","TradeVolume":"12827159729","TradeValue":"1034012240502","Transaction":"4808093","TAIEX":"42711.92","Change":"1050.22"}]

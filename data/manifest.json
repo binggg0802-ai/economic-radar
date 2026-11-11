@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-11-11T13:23:02+08:00",
+  "generated_at": "2026-11-11T13:23:55+08:00",
   "note": "所有頁面只讀這份清單與 series/*.json。數值皆經驗證流程產生；未通過驗證不會發布；未接入的指標沒有數值。",
   "series": [
     {
@@ -8,11 +8,11 @@
       "name": "台灣加權指數",
       "unit": "點",
       "active": true,
-      "status": "error",
-      "status_label": "更新失敗",
+      "status": "ok",
+      "status_label": "已更新",
       "period": "2026-11-10",
       "value": 42711.92,
-      "last_success_at": "2026-11-11T13:19:25+08:00",
+      "last_success_at": "2026-11-11T13:23:54+08:00",
       "valid_until": "2026-11-11T18:00:00+08:00",
       "data_version": 1,
       "publisher": "臺灣證券交易所",
