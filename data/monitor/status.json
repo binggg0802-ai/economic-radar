@@ -2,7 +2,7 @@
   "series": {
     "tw_taiex": {
       "consecutive_failures": 0,
-      "last_run_at": "2026-11-11T18:13:19+08:00",
+      "last_run_at": "2026-11-11T18:52:10+08:00",
       "last_result": "stale",
       "last_reason": "應有 2026-11-11 的收盤，但官方最新只到 2026-11-10",
       "source_health": {
@@ -11,24 +11,24 @@
           "ok": true,
           "http_status": 200,
           "bytes": 975,
-          "checked_at": "2026-11-11T18:13:19+08:00"
+          "checked_at": "2026-11-11T18:52:10+08:00"
         },
         "MI_INDEX": {
           "name": "MI_INDEX",
           "ok": true,
           "http_status": 200,
           "bytes": 46330,
-          "checked_at": "2026-11-11T18:13:19+08:00"
+          "checked_at": "2026-11-11T18:52:10+08:00"
         },
         "holidaySchedule": {
           "name": "holidaySchedule",
           "ok": true,
           "http_status": 200,
           "bytes": 3774,
-          "checked_at": "2026-11-11T18:13:19+08:00"
+          "checked_at": "2026-11-11T18:52:10+08:00"
         }
       },
-      "last_success_at": "2026-11-11T18:13:19+08:00",
+      "last_success_at": "2026-11-11T18:52:10+08:00",
       "current": {
         "period": "2026-11-10",
         "value": 42711.92,
@@ -48,7 +48,7 @@
           "status": "stale",
           "data_version": 1
         },
-        "at": "2026-11-11T18:13:19+08:00"
+        "at": "2026-11-11T18:52:10+08:00"
       },
       "alert": null,
       "last_failure_at": "2026-11-11T13:22:07+08:00",
@@ -56,6 +56,26 @@
     }
   },
   "recent_runs": [
+    {
+      "at": "2026-11-11T18:52:10+08:00",
+      "series": "tw_taiex",
+      "trigger": "workflow_dispatch",
+      "fault": null,
+      "result": "stale",
+      "reason": "應有 2026-11-11 的收盤，但官方最新只到 2026-11-10",
+      "before": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "stale",
+        "data_version": 1
+      },
+      "after": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "stale",
+        "data_version": 1
+      }
+    },
     {
       "at": "2026-11-11T18:13:19+08:00",
       "series": "tw_taiex",
@@ -417,5 +437,5 @@
       }
     }
   ],
-  "generated_at": "2026-11-11T18:13:20+08:00"
+  "generated_at": "2026-11-11T18:52:12+08:00"
 }
