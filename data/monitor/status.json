@@ -2,7 +2,7 @@
   "series": {
     "tw_taiex": {
       "consecutive_failures": 0,
-      "last_run_at": "2026-11-11T13:23:54+08:00",
+      "last_run_at": "2026-11-11T13:26:22+08:00",
       "last_result": "ok",
       "last_reason": "最新收盤日 2026-11-10，即應有的最新交易日",
       "source_health": {
@@ -11,24 +11,24 @@
           "ok": true,
           "http_status": 200,
           "bytes": 975,
-          "checked_at": "2026-11-11T13:23:54+08:00"
+          "checked_at": "2026-11-11T13:26:22+08:00"
         },
         "MI_INDEX": {
           "name": "MI_INDEX",
           "ok": true,
           "http_status": 200,
           "bytes": 46330,
-          "checked_at": "2026-11-11T13:23:54+08:00"
+          "checked_at": "2026-11-11T13:26:22+08:00"
         },
         "holidaySchedule": {
           "name": "holidaySchedule",
           "ok": true,
           "http_status": 200,
           "bytes": 3774,
-          "checked_at": "2026-11-11T13:23:54+08:00"
+          "checked_at": "2026-11-11T13:26:22+08:00"
         }
       },
-      "last_success_at": "2026-11-11T13:23:54+08:00",
+      "last_success_at": "2026-11-11T13:26:22+08:00",
       "current": {
         "period": "2026-11-10",
         "value": 42711.92,
@@ -39,7 +39,7 @@
         "before": {
           "period": "2026-11-10",
           "value": 42711.92,
-          "status": "error",
+          "status": "ok",
           "data_version": 1
         },
         "after": {
@@ -48,7 +48,7 @@
           "status": "ok",
           "data_version": 1
         },
-        "at": "2026-11-11T13:23:54+08:00"
+        "at": "2026-11-11T13:26:22+08:00"
       },
       "alert": null,
       "last_failure_at": "2026-11-11T13:22:07+08:00",
@@ -56,6 +56,26 @@
     }
   },
   "recent_runs": [
+    {
+      "at": "2026-11-11T13:26:22+08:00",
+      "series": "tw_taiex",
+      "trigger": "push",
+      "fault": null,
+      "result": "ok",
+      "reason": "最新收盤日 2026-11-10，即應有的最新交易日",
+      "before": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "ok",
+        "data_version": 1
+      },
+      "after": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "ok",
+        "data_version": 1
+      }
+    },
     {
       "at": "2026-11-11T13:23:54+08:00",
       "series": "tw_taiex",
@@ -177,5 +197,5 @@
       }
     }
   ],
-  "generated_at": "2026-11-11T13:23:55+08:00"
+  "generated_at": "2026-11-11T13:26:23+08:00"
 }
