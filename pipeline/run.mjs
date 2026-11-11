@@ -14,7 +14,7 @@ const STATUS_LABEL = {
 
 // 單一系列的完整流程：取得 → 解析 → 驗證 → 判定狀態 → 儲存。
 // 任何一步失敗都不會產生新數值；只會更新狀態與原因，並保留上次成功的值（明確標示非最新）。
-export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fetch } = {}) {
+export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fetch, primaryUrl = META.sources.primary.url } = {}) {
   const started = isoTaipei(now);
   const seriesPath = join(root, 'series', META.id + '.json');
   const prev = await readJson(seriesPath, null);
@@ -36,7 +36,7 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
   // 1. 取得（主要端點 + 交叉比對端點 + 休市日）
   let fm, mi, hol;
   try {
-    fm = await fetchText(META.sources.primary.url, { fetchImpl });
+    fm = await fetchText(primaryUrl, { fetchImpl });
     raw_files.push({ name: 'FMTQIK', path: await saveRaw(root, META.id, started, 'FMTQIK', fm.text), ...fm.evidence });
     step('fetch_primary', true, fm.evidence);
   } catch (e) {
@@ -119,7 +119,9 @@ export async function writeManifest(root, records) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const root = process.env.DATA_ROOT || 'data';
-  const { record, log } = await runTaiex({ root });
+  // 故障演練：FAULT_INJECT=bad_host 時改連一個不存在的網域，用來在真實環境驗證錯誤處理
+  const primaryUrl = process.env.FAULT_INJECT === 'bad_host' ? 'https://openapi.twse.invalid/v1/exchangeReport/FMTQIK' : undefined;
+  const { record, log } = await runTaiex({ root, ...(primaryUrl ? { primaryUrl } : {}) });
   await writeManifest(root, [record]);
   console.log(JSON.stringify({ status: record.status, period: record.period, value: record.value, reason: record.status_reason, steps: log.steps.map((s) => `${s.name}:${s.ok ? 'ok' : 'FAIL'}`) }, null, 2));
   // 驗證或連線失敗時讓 Actions 顯示紅燈，但資料檔已寫入正確的錯誤狀態

@@ -36,6 +36,8 @@ jobs:
           node -v
       - name: Fetch → validate → store (TAIEX)
         id: run
+        env:
+          FAULT_INJECT: bad_host
         run: node pipeline/run.mjs | tee run-output.json
         continue-on-error: true
       - name: Summary
