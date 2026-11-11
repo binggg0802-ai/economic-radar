@@ -64,7 +64,7 @@ export async function fetchText(url, { timeoutMs = 20000, retries = 2, fetchImpl
       else return { text, evidence };
     } catch (e) {
       clearTimeout(timer);
-      lastErr = Object.assign(new Error(e.name === 'AbortError' ? `逾時（${timeoutMs}ms）` : e.message), { evidence: { url, fetched_at: isoTaipei(started), attempt: attempt + 1 } });
+      lastErr = Object.assign(new Error(e.name === 'AbortError' ? `逾時（${timeoutMs}ms）` : e.message + (e.cause && e.cause.code ? `（${e.cause.code}）` : '')), { evidence: { url, fetched_at: isoTaipei(started), attempt: attempt + 1 } });
     }
     if (attempt < retries) await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
   }

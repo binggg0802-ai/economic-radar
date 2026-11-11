@@ -38,7 +38,10 @@ jobs:
         id: run
         env:
           FAULT_INJECT: bad_host
-        run: node pipeline/run.mjs | tee run-output.json
+        shell: bash
+        run: |
+          set -o pipefail
+          node pipeline/run.mjs | tee run-output.json
         continue-on-error: true
       - name: Summary
         if: always()
