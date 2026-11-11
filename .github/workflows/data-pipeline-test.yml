@@ -36,8 +36,6 @@ jobs:
           node -v
       - name: Fetch → validate → store (TAIEX)
         id: run
-        env:
-          FAULT_INJECT: bad_host
         shell: bash
         run: |
           set -o pipefail
