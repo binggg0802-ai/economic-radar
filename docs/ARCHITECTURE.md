@@ -77,3 +77,61 @@ GitHub Actions（排程，依資料類型與官方日程）
 - 央行、主計總處：依開放授權條款可商用，標示出處即可。
 - BLS：公共領域，可商用。
 - 基礎設施：資料量小時，GitHub Actions + Pages + Supabase 免費方案即可。流量變大或需要 SLA 時，再考慮付費方案（Supabase Pro 每月約 25 美元起）。
+
+---
+
+## 6. 第二階段（正式化）變更，2026-11-11
+
+### 資料品質流程
+
+每一步失敗都不會產生新數值。
+
+| 步驟 | 內容 |
+|---|---|
+| 取得 | 加入防倒退與原始回應去重 |
+| 格式驗證 | |
+| 數值驗證 | |
+| 日期檢查 | |
+| 官方來源核對 | MI_INDEX 交叉比對 |
+| 儲存 | |
+| 前端顯示 | 經 `client/radar-data.js` 再檢查 `valid_until` |
+
+### 統一資料格式：schema v2，`data/series/<code>.json`
+
+| 需求欄位 | 對應欄位 |
+|---|---|
+| 指標名稱 | `name` |
+| 指標代碼 | `code` |
+| 數值 | `value` |
+| 單位 | `unit` |
+| 資料所屬日期 | `period` |
+| 官方來源 | `source{publisher,name,url}` |
+| 原始資料網址 | `raw_url` |
+| 首次取得時間 | `first_seen_at` |
+| 最後成功更新時間 | `last_success_at` |
+| 查證狀態 | `verification.status`，值為 verified 或 failed |
+| 資料版本 | `data_version`，數值或期間改變才加 1 |
+
+另有以下欄位：`status` 與 `status_label`、`valid_until`、`expected_period`、`license`、`raw_files`（含 sha256）。
+
+### 狀態
+
+| 狀態 | 意義 |
+|---|---|
+| 已更新 | |
+| 尚未公布 | |
+| 更新失敗 | 保留上次成功值與原日期 |
+| 資料逾期 | 管線判定；或前端發現已超過 `valid_until` |
+| 從未成功取得 | 不給數字 |
+| 尚未接入 | |
+
+### 其他變更
+
+- **指標清單**：`pipeline/registry.mjs`，共四項，目前只有台灣加權指數啟用。`data/manifest.json` 列出全部四項，未接入的沒有數值。
+- **監控**：
+  - `data/monitor/status.json` 記錄連續失敗次數、來源健康度、更新前後值與最近 50 次執行；連續 3 次失敗產生警示。
+  - `data/runs/YYYY-MM.jsonl` 記錄每次執行，包含被排程略過的。
+  - 監控頁：`preview/monitor.html`。
+- **排程**：見 `docs/SCHEDULE.md`。
+- **授權**：見 `docs/LICENSES.md`。
+- **分支方案**：見 `docs/BRANCH_PROPOSAL.md`，待確認。

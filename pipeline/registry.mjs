@@ -6,7 +6,7 @@ export const REGISTRY = [
     data_type: 'close', frequency: '每個交易日（收盤後）',
     publisher: '臺灣證券交易所', source_url: 'https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK',
     schedule: '交易日 14:07 起每 20 分鐘檢查，取得當日收盤即停止；非交易日不抓取',
-    license: { status: '待確認', note: '證交所 OpenAPI 未載明商業使用條件；網站使用條款禁止未經同意的爬蟲。盤後資料用於商業 App 前需向證交所確認。' }
+    license: { status: '待確認', note: '政府資料開放平臺將此資料集（每日市場成交資訊，data.gov.tw/datasets/11672）標示為政府資料開放授權條款第 1 版、免費；但證交所網站使用條款與交易資訊使用管理辦法是否另有限制，尚待證交所書面確認。' }
   },
   {
     code: 'usd_twd', name: '美元／新台幣 收盤匯率', unit: '新台幣／美元', active: false,
