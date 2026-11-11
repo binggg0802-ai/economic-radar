@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-11-11T18:52:12+08:00",
+  "generated_at": "2026-11-11T18:58:07+08:00",
   "note": "所有頁面只讀這份清單與 series/*.json。數值皆經驗證流程產生；未通過驗證不會發布；未接入的指標沒有數值。",
   "series": [
     {
@@ -8,12 +8,12 @@
       "name": "台灣加權指數",
       "unit": "點",
       "active": true,
-      "status": "stale",
-      "status_label": "資料逾期",
+      "status": "pending",
+      "status_label": "尚未公布",
       "period": "2026-11-10",
       "value": 42711.92,
-      "last_success_at": "2026-11-11T18:52:10+08:00",
-      "valid_until": "2026-11-11T18:00:00+08:00",
+      "last_success_at": "2026-11-11T18:58:05+08:00",
+      "valid_until": "2026-11-12T09:00:00+08:00",
       "data_version": 1,
       "publisher": "臺灣證券交易所",
       "source_url": "https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK",
