@@ -130,6 +130,21 @@ jobs:
           elif [ -n "$OPEN" ]; then
             gh issue close "$OPEN" --comment "已恢復：${RESULT}。${RUN_URL}"
           fi
+      - name: Alert drill (fault runs only) — prove issue notification works, then close immediately
+        if: always() && steps.mode.outputs.fault != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        shell: bash
+        run: |
+          [ -f run-output.json ] || exit 0
+          ALERT=$(node -e "const o=JSON.parse(require('fs').readFileSync('run-output.json','utf8'));console.log(o.alert===null?'null':o.alert)")
+          RESULT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('run-output.json','utf8')).result)")
+          [ "$ALERT" != "null" ] || { echo "no alert raised in drill (result=$RESULT)"; exit 0; }
+          gh label create data-alert-drill --color FBCA04 --description "資料管線警示演練" --force >/dev/null 2>&1 || true
+          URL=$(gh issue create --title "【演練】資料管線警示：${{ steps.mode.outputs.fault }}" --label data-alert-drill --body "這是故障演練，不是真實異常。"$'\n'"結果：${RESULT}"$'\n'"警示：${ALERT}"$'\n'"執行紀錄：${RUN_URL}")
+          echo "drill issue: $URL"
+          gh issue close "$URL" --comment "演練結束，自動關閉。data 分支未被寫入。"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
