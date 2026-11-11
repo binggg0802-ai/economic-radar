@@ -1,0 +1,79 @@
+{
+  "series": {
+    "tw_taiex": {
+      "consecutive_failures": 0,
+      "last_run_at": "2026-11-11T13:19:25+08:00",
+      "last_result": "ok",
+      "last_reason": "最新收盤日 2026-11-10，即應有的最新交易日",
+      "source_health": {
+        "FMTQIK": {
+          "name": "FMTQIK",
+          "ok": true,
+          "http_status": 200,
+          "bytes": 975,
+          "checked_at": "2026-11-11T13:19:25+08:00"
+        },
+        "MI_INDEX": {
+          "name": "MI_INDEX",
+          "ok": true,
+          "http_status": 200,
+          "bytes": 46330,
+          "checked_at": "2026-11-11T13:19:25+08:00"
+        },
+        "holidaySchedule": {
+          "name": "holidaySchedule",
+          "ok": true,
+          "http_status": 200,
+          "bytes": 3774,
+          "checked_at": "2026-11-11T13:19:25+08:00"
+        }
+      },
+      "last_success_at": "2026-11-11T13:19:25+08:00",
+      "current": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "ok",
+        "data_version": 1
+      },
+      "last_change": {
+        "before": {
+          "period": "2026-11-10",
+          "value": 42711.92,
+          "status": "ok",
+          "data_version": null
+        },
+        "after": {
+          "period": "2026-11-10",
+          "value": 42711.92,
+          "status": "ok",
+          "data_version": 1
+        },
+        "at": "2026-11-11T13:19:25+08:00"
+      },
+      "alert": null
+    }
+  },
+  "recent_runs": [
+    {
+      "at": "2026-11-11T13:19:25+08:00",
+      "series": "tw_taiex",
+      "trigger": "push",
+      "fault": null,
+      "result": "ok",
+      "reason": "最新收盤日 2026-11-10，即應有的最新交易日",
+      "before": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "ok",
+        "data_version": null
+      },
+      "after": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "ok",
+        "data_version": 1
+      }
+    }
+  ],
+  "generated_at": "2026-11-11T13:19:26+08:00"
+}
