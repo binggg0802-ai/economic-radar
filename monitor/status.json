@@ -2,7 +2,7 @@
   "series": {
     "tw_taiex": {
       "consecutive_failures": 0,
-      "last_run_at": "2026-11-11T20:01:09+08:00",
+      "last_run_at": "2026-11-11T20:31:01+08:00",
       "last_result": "pending",
       "last_reason": "2026-11-11 已收盤，官方尚未公布收盤資料（最晚應於 2026-11-12 09:00 前取得）；目前顯示 2026-11-10 的收盤",
       "source_health": {
@@ -11,24 +11,24 @@
           "ok": true,
           "http_status": 200,
           "bytes": 975,
-          "checked_at": "2026-11-11T20:01:09+08:00"
+          "checked_at": "2026-11-11T20:31:01+08:00"
         },
         "MI_INDEX": {
           "name": "MI_INDEX",
           "ok": true,
           "http_status": 200,
           "bytes": 46330,
-          "checked_at": "2026-11-11T20:01:09+08:00"
+          "checked_at": "2026-11-11T20:31:01+08:00"
         },
         "holidaySchedule": {
           "name": "holidaySchedule",
           "ok": true,
           "http_status": 200,
           "bytes": 3774,
-          "checked_at": "2026-11-11T20:01:09+08:00"
+          "checked_at": "2026-11-11T20:31:01+08:00"
         }
       },
-      "last_success_at": "2026-11-11T20:01:09+08:00",
+      "last_success_at": "2026-11-11T20:31:01+08:00",
       "current": {
         "period": "2026-11-10",
         "value": 42711.92,
@@ -48,7 +48,7 @@
           "status": "pending",
           "data_version": 1
         },
-        "at": "2026-11-11T20:01:09+08:00"
+        "at": "2026-11-11T20:31:01+08:00"
       },
       "alert": null,
       "last_failure_at": "2026-11-11T13:22:07+08:00",
@@ -58,6 +58,26 @@
     }
   },
   "recent_runs": [
+    {
+      "at": "2026-11-11T20:31:01+08:00",
+      "series": "tw_taiex",
+      "trigger": "workflow_dispatch",
+      "fault": null,
+      "result": "pending",
+      "reason": "2026-11-11 已收盤，官方尚未公布收盤資料（最晚應於 2026-11-12 09:00 前取得）；目前顯示 2026-11-10 的收盤",
+      "before": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "pending",
+        "data_version": 1
+      },
+      "after": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "pending",
+        "data_version": 1
+      }
+    },
     {
       "at": "2026-11-11T20:01:09+08:00",
       "series": "tw_taiex",
@@ -519,5 +539,5 @@
       }
     }
   ],
-  "generated_at": "2026-11-11T20:01:10+08:00"
+  "generated_at": "2026-11-11T20:31:03+08:00"
 }
