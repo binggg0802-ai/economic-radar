@@ -14,7 +14,7 @@ export async function writeJsonAtomic(path, obj) {
 }
 
 export async function saveRaw(root, seriesId, stamp, name, text) {
-  const p = join(root, 'raw', seriesId, stamp.slice(0, 10), `${stamp.slice(11, 16).replace(':', '')}-${name}.json`);
+  const p = join(root, 'raw', seriesId, stamp.slice(0, 10), `${stamp.slice(11, 19).replace(/:/g, '')}-${name}.json`);
   await mkdir(dirname(p), { recursive: true });
   await writeFile(p, text);
   return p.slice(root.length + 1);

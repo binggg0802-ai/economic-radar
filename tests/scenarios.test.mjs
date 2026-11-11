@@ -121,6 +121,11 @@ test('S7 舊資料不得覆蓋新資料：官方端點回傳較舊日期 → 保
   assert.equal(r.value, 42711.92);
   assert.equal(r.data_version, 1);
   assert.match(r.last_guard.reason, /早於已保存/);
+  // 演練用的竄改回應不得混入官方原始資料
+  const inj = await readdir(join(root, 'raw', 'tw_taiex', '_fault_injected', '2026-11-10'));
+  assert.deepEqual(inj, ['170000-FMTQIK.old_data.json']);
+  const idx = await J(join(root, 'raw', 'tw_taiex', 'latest.json'));
+  assert.ok(!idx.FMTQIK.path.includes('_fault'));
 });
 
 test('S8 失敗後恢復：連續失敗 → 正常 → 已更新，失敗計數歸零，監控記錄前後值', async () => {

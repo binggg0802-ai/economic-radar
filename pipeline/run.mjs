@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { fetchText, isoTaipei, sha256, addDays } from './lib/util.mjs';
-import { readJson, writeJsonAtomic, saveRawDedup, upsertHistory, appendRunLog } from './lib/store.mjs';
+import { readJson, writeJsonAtomic, saveRaw, saveRawDedup, upsertHistory, appendRunLog } from './lib/store.mjs';
 import { validateTaiex } from './lib/validate.mjs';
 import { decideTwClose, isTwseTradingDay } from './lib/schedule.mjs';
 import { REGISTRY } from './registry.mjs';
@@ -92,8 +92,12 @@ export async function runTaiex({ root = 'data', now = new Date(), fetchImpl = fe
   const grab = async (name, url) => {
     try {
       const r = await fetchText(url, { fetchImpl: f });
-      const saved = await saveRawDedup(root, META.id, started, name, r.text, r.evidence.sha256);
-      raw_files.push({ name, ...r.evidence, path: saved.path, deduplicated: saved.deduplicated });
+      // 故障演練時被竄改過的回應不是官方原始資料：另存到 _fault_injected/，也不更新去重索引
+      const injected = fault && name === 'FMTQIK';
+      const saved = injected
+        ? { path: await saveRaw(root, META.id + '/_fault_injected', started, `${name}.${fault}`, r.text), deduplicated: false }
+        : await saveRawDedup(root, META.id, started, name, r.text, r.evidence.sha256);
+      raw_files.push({ name, ...r.evidence, path: saved.path, deduplicated: saved.deduplicated, fault_injected: !!injected });
       log.source_health.push({ name, ok: true, http_status: r.evidence.http_status, bytes: r.evidence.bytes });
       step('fetch_' + name, true, { http_status: r.evidence.http_status, sha256: r.evidence.sha256, deduplicated: saved.deduplicated });
       return r;
