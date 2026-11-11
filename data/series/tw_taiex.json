@@ -39,7 +39,7 @@
     "status": "待確認",
     "note": "證交所 OpenAPI 未載明商業使用條件；網站使用條款禁止未經同意的爬蟲。盤後資料用於商業 App 前需向證交所確認。"
   },
-  "last_attempt_at": "2026-11-11T13:21:09+08:00",
+  "last_attempt_at": "2026-11-11T13:22:07+08:00",
   "value": 42711.92,
   "period": "2026-11-10",
   "change": 1050.22,
@@ -48,7 +48,7 @@
   "prev_value": 41661.7,
   "status": "error",
   "status_label": "更新失敗",
-  "status_reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）",
+  "status_reason": "官方回應格式不符，已停止更新：FMTQIK 第 1 筆欄位格式不符：{\"Date\":\"1151102\",\"TradeVolume\":\"10422514115\",\"TradeValue\":\"799687507911\",\"Transaction\":\"4104242\",\"IndexValue\":\"44920.14\",\"Change\":\"-291.69\"}",
   "is_latest": false,
   "expected_period": "2026-11-10",
   "valid_until": "2026-11-11T18:00:00+08:00",
@@ -58,8 +58,8 @@
   "data_version": 1,
   "verification": {
     "status": "failed",
-    "checked_at": "2026-11-11T13:21:09+08:00",
-    "reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）"
+    "checked_at": "2026-11-11T13:22:07+08:00",
+    "reason": "官方回應格式不符，已停止更新：FMTQIK 第 1 筆欄位格式不符：{\"Date\":\"1151102\",\"TradeVolume\":\"10422514115\",\"TradeValue\":\"799687507911\",\"Transaction\":\"4104242\",\"IndexValue\":\"44920.14\",\"Change\":\"-291.69\"}"
   },
   "validation": {
     "passed": true,
@@ -108,12 +108,23 @@
   },
   "raw_files": [
     {
+      "name": "FMTQIK",
+      "url": "https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK",
+      "http_status": 200,
+      "bytes": 1010,
+      "sha256": "ca92f6a1d8eda1c2ecdb320be3ec363c12408f4a1a385353957bddc7046365ff",
+      "fetched_at": "2026-11-11T13:22:07+08:00",
+      "attempt": 1,
+      "path": "raw/tw_taiex/2026-11-11/1322-FMTQIK.json",
+      "deduplicated": false
+    },
+    {
       "name": "MI_INDEX",
       "url": "https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX",
       "http_status": 200,
       "bytes": 46330,
       "sha256": "d8e427c3676c0d8e18a8343aa4326f71cd476a07fb0c0484529a5d957d32eacb",
-      "fetched_at": "2026-11-11T13:21:13+08:00",
+      "fetched_at": "2026-11-11T13:22:08+08:00",
       "attempt": 1,
       "path": "raw/tw_taiex/2026-11-11/1319-MI_INDEX.json",
       "deduplicated": true
@@ -124,7 +135,7 @@
       "http_status": 200,
       "bytes": 3774,
       "sha256": "7644c1a8af784c09f54670fd7413f536b13eb76c54d658058e8873d1aee32117",
-      "fetched_at": "2026-11-11T13:21:15+08:00",
+      "fetched_at": "2026-11-11T13:22:09+08:00",
       "attempt": 1,
       "path": "raw/tw_taiex/2026-11-11/1319-holidaySchedule.json",
       "deduplicated": true

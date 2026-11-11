@@ -1,31 +1,31 @@
 {
   "series": {
     "tw_taiex": {
-      "consecutive_failures": 1,
-      "last_run_at": "2026-11-11T13:21:09+08:00",
+      "consecutive_failures": 2,
+      "last_run_at": "2026-11-11T13:22:07+08:00",
       "last_result": "error",
-      "last_reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）",
+      "last_reason": "官方回應格式不符，已停止更新：FMTQIK 第 1 筆欄位格式不符：{\"Date\":\"1151102\",\"TradeVolume\":\"10422514115\",\"TradeValue\":\"799687507911\",\"Transaction\":\"4104242\",\"IndexValue\":\"44920.14\",\"Change\":\"-291.69\"}",
       "source_health": {
         "FMTQIK": {
           "name": "FMTQIK",
-          "ok": false,
-          "http_status": null,
-          "error": "fetch failed（ENOTFOUND）",
-          "checked_at": "2026-11-11T13:21:09+08:00"
+          "ok": true,
+          "http_status": 200,
+          "bytes": 1010,
+          "checked_at": "2026-11-11T13:22:07+08:00"
         },
         "MI_INDEX": {
           "name": "MI_INDEX",
           "ok": true,
           "http_status": 200,
           "bytes": 46330,
-          "checked_at": "2026-11-11T13:21:09+08:00"
+          "checked_at": "2026-11-11T13:22:07+08:00"
         },
         "holidaySchedule": {
           "name": "holidaySchedule",
           "ok": true,
           "http_status": 200,
           "bytes": 3774,
-          "checked_at": "2026-11-11T13:21:09+08:00"
+          "checked_at": "2026-11-11T13:22:07+08:00"
         }
       },
       "last_success_at": "2026-11-11T13:19:25+08:00",
@@ -39,7 +39,7 @@
         "before": {
           "period": "2026-11-10",
           "value": 42711.92,
-          "status": "ok",
+          "status": "error",
           "data_version": 1
         },
         "after": {
@@ -48,14 +48,34 @@
           "status": "error",
           "data_version": 1
         },
-        "at": "2026-11-11T13:21:09+08:00"
+        "at": "2026-11-11T13:22:07+08:00"
       },
       "alert": null,
-      "last_failure_at": "2026-11-11T13:21:09+08:00",
-      "last_failure_reason": "無法取得證交所 OpenAPI 主要端點：fetch failed（ENOTFOUND）"
+      "last_failure_at": "2026-11-11T13:22:07+08:00",
+      "last_failure_reason": "官方回應格式不符，已停止更新：FMTQIK 第 1 筆欄位格式不符：{\"Date\":\"1151102\",\"TradeVolume\":\"10422514115\",\"TradeValue\":\"799687507911\",\"Transaction\":\"4104242\",\"IndexValue\":\"44920.14\",\"Change\":\"-291.69\"}"
     }
   },
   "recent_runs": [
+    {
+      "at": "2026-11-11T13:22:07+08:00",
+      "series": "tw_taiex",
+      "trigger": "workflow_dispatch",
+      "fault": "format_change",
+      "result": "error",
+      "reason": "官方回應格式不符，已停止更新：FMTQIK 第 1 筆欄位格式不符：{\"Date\":\"1151102\",\"TradeVolume\":\"10422514115\",\"TradeValue\":\"799687507911\",\"Transaction\":\"4104242\",\"IndexValue\":\"44920.14\",\"Change\":\"-291.69\"}",
+      "before": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "error",
+        "data_version": 1
+      },
+      "after": {
+        "period": "2026-11-10",
+        "value": 42711.92,
+        "status": "error",
+        "data_version": 1
+      }
+    },
     {
       "at": "2026-11-11T13:21:09+08:00",
       "series": "tw_taiex",
@@ -117,5 +137,5 @@
       }
     }
   ],
-  "generated_at": "2026-11-11T13:21:15+08:00"
+  "generated_at": "2026-11-11T13:22:09+08:00"
 }
