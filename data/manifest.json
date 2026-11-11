@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-11-11T15:10:45+08:00",
+  "generated_at": "2026-11-11T15:40:48+08:00",
   "note": "所有頁面只讀這份清單與 series/*.json。數值皆經驗證流程產生；未通過驗證不會發布；未接入的指標沒有數值。",
   "series": [
     {
@@ -12,7 +12,7 @@
       "status_label": "尚未公布",
       "period": "2026-11-10",
       "value": 42711.92,
-      "last_success_at": "2026-11-11T15:10:44+08:00",
+      "last_success_at": "2026-11-11T15:40:47+08:00",
       "valid_until": "2026-11-11T18:00:00+08:00",
       "data_version": 1,
       "publisher": "臺灣證券交易所",
