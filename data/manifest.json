@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-11-11T12:04:52+08:00",
+  "generated_at": "2026-11-11T12:05:52+08:00",
   "note": "所有頁面只讀這份清單與 series/*.json；數值皆經驗證流程產生，未通過驗證不會發布。",
   "series": [
     {
       "id": "tw_taiex",
       "short_name": "台灣加權指數",
-      "status": "error",
+      "status": "ok",
       "period": "2026-11-10",
-      "last_success_at": "2026-11-11T12:02:06+08:00",
+      "last_success_at": "2026-11-11T12:05:50+08:00",
       "path": "series/tw_taiex.json"
     }
   ]
