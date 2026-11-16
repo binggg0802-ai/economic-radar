@@ -2,9 +2,9 @@
   "series": {
     "tw_taiex": {
       "consecutive_failures": 0,
-      "last_run_at": "2026-11-16T07:49:03+08:00",
-      "last_result": "ok",
-      "last_reason": "下一個交易日 2026-11-16 尚未收盤，2026-11-13 即為最新收盤",
+      "last_run_at": "2026-11-16T09:18:55+08:00",
+      "last_result": "skipped",
+      "last_reason": "無新的交易日收盤待取得（下一個交易日 2026-11-16 尚未收盤，2026-11-13 即為最新收盤）",
       "source_health": {
         "FMTQIK": {
           "name": "FMTQIK",
@@ -58,6 +58,26 @@
     }
   },
   "recent_runs": [
+    {
+      "at": "2026-11-16T09:18:55+08:00",
+      "series": "tw_taiex",
+      "trigger": "schedule",
+      "fault": null,
+      "result": "skipped",
+      "reason": "無新的交易日收盤待取得（下一個交易日 2026-11-16 尚未收盤，2026-11-13 即為最新收盤）",
+      "before": {
+        "period": "2026-11-13",
+        "value": 43675.12,
+        "status": "ok",
+        "data_version": 2
+      },
+      "after": {
+        "period": "2026-11-13",
+        "value": 43675.12,
+        "status": "ok",
+        "data_version": 2
+      }
+    },
     {
       "at": "2026-11-16T07:49:03+08:00",
       "series": "tw_taiex",
@@ -579,5 +599,5 @@
       }
     }
   ],
-  "generated_at": "2026-11-16T07:49:04+08:00"
+  "generated_at": "2026-11-16T09:18:55+08:00"
 }
