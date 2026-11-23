@@ -39,28 +39,28 @@
     "status": "待確認",
     "note": "政府資料開放平臺將此資料集（每日市場成交資訊，data.gov.tw/datasets/11672）標示為政府資料開放授權條款第 1 版、免費；但證交所網站使用條款與交易資訊使用管理辦法是否另有限制，尚待證交所書面確認。"
   },
-  "last_attempt_at": "2026-11-24T00:01:23+08:00",
-  "value": 36033.29,
-  "period": "2026-11-20",
-  "change": -2393.6,
-  "change_pct": -6.23,
-  "prev_period": "2026-11-19",
-  "prev_value": 38426.89,
-  "status": "pending",
-  "status_label": "尚未公布",
-  "status_reason": "2026-11-23 已收盤，官方尚未公布收盤資料（最晚應於 2026-11-24 09:00 前取得）；目前顯示 2026-11-20 的收盤",
-  "is_latest": false,
+  "last_attempt_at": "2026-11-24T07:53:46+08:00",
+  "value": 36811.89,
+  "period": "2026-11-23",
+  "change": 778.6,
+  "change_pct": 2.16,
+  "prev_period": "2026-11-20",
+  "prev_value": 36033.29,
+  "status": "ok",
+  "status_label": "已更新",
+  "status_reason": "下一個交易日 2026-11-24 尚未收盤，2026-11-23 即為最新收盤",
+  "is_latest": true,
   "expected_period": "2026-11-23",
-  "next_due_period": "2026-11-23",
-  "valid_until": "2026-11-24T09:00:00+08:00",
+  "next_due_period": "2026-11-24",
+  "valid_until": "2026-11-25T09:00:00+08:00",
   "freshness_rule": "暫定：下一交易日 09:00（開盤前）。依實測首次取得時間調整。",
-  "first_seen_at": "2026-11-21T16:21:44+08:00",
-  "fetched_at": "2026-11-24T00:01:23+08:00",
-  "last_success_at": "2026-11-24T00:01:23+08:00",
-  "data_version": 7,
+  "first_seen_at": "2026-11-24T07:53:46+08:00",
+  "fetched_at": "2026-11-24T07:53:46+08:00",
+  "last_success_at": "2026-11-24T07:53:46+08:00",
+  "data_version": 8,
   "verification": {
     "status": "verified",
-    "checked_at": "2026-11-24T00:01:23+08:00",
+    "checked_at": "2026-11-24T07:53:46+08:00",
     "checks_passed": 8
   },
   "validation": {
@@ -69,17 +69,17 @@
       {
         "id": "rows_present",
         "ok": true,
-        "detail": "取得 15 筆"
+        "detail": "取得 16 筆"
       },
       {
         "id": "not_future",
         "ok": true,
-        "detail": "最新資料日 2026-11-20，台北今日 2026-11-24"
+        "detail": "最新資料日 2026-11-23，台北今日 2026-11-24"
       },
       {
         "id": "range",
         "ok": true,
-        "detail": "收盤 36033.29 落在合理範圍 1,000–200,000"
+        "detail": "收盤 36811.89 落在合理範圍 1,000–200,000"
       },
       {
         "id": "ascending_unique",
@@ -89,17 +89,17 @@
       {
         "id": "change_consistent",
         "ok": true,
-        "detail": "14 組相鄰交易日的漲跌點數全部吻合"
+        "detail": "15 組相鄰交易日的漲跌點數全部吻合"
       },
       {
         "id": "daily_move_sane",
         "ok": true,
-        "detail": "單日變動 -6.23%（上限 ±10%）"
+        "detail": "單日變動 2.16%（上限 ±10%）"
       },
       {
         "id": "cross_check",
         "ok": true,
-        "detail": "MI_INDEX 36033.29（-2393.6） vs FMTQIK 36033.29（-2393.6）"
+        "detail": "MI_INDEX 36811.89（778.6） vs FMTQIK 36811.89（778.6）"
       },
       {
         "id": "calendar",
@@ -113,24 +113,24 @@
       "name": "FMTQIK",
       "url": "https://openapi.twse.com.tw/v1/exchangeReport/FMTQIK",
       "http_status": 200,
-      "bytes": 2084,
-      "sha256": "a98f99a9c9f9ee08ec821b07b0df3d1df5906022129eb8677210dcf478533864",
-      "fetched_at": "2026-11-24T00:01:23+08:00",
+      "bytes": 2222,
+      "sha256": "a42aae2482e2a3a507d2bb297c621ef5f139656a078c55f9711ffaafd8b8b776",
+      "fetched_at": "2026-11-24T07:53:46+08:00",
       "attempt": 1,
-      "path": "raw/tw_taiex/2026-11-21/162144-FMTQIK.json",
-      "deduplicated": true,
+      "path": "raw/tw_taiex/2026-11-24/075346-FMTQIK.json",
+      "deduplicated": false,
       "fault_injected": false
     },
     {
       "name": "MI_INDEX",
       "url": "https://openapi.twse.com.tw/v1/exchangeReport/MI_INDEX",
       "http_status": 200,
-      "bytes": 46703,
-      "sha256": "ef45fa5ee1ffb88e358038d4c8058731dda88bb7f8d3324c6afddc7757bb6f3a",
-      "fetched_at": "2026-11-24T00:01:25+08:00",
+      "bytes": 46288,
+      "sha256": "7d03f913887ca9c4d3e1f1fae075384f4255311d0307aec2e4dd72e66453b904",
+      "fetched_at": "2026-11-24T07:53:47+08:00",
       "attempt": 1,
-      "path": "raw/tw_taiex/2026-11-21/162144-MI_INDEX.json",
-      "deduplicated": true,
+      "path": "raw/tw_taiex/2026-11-24/075346-MI_INDEX.json",
+      "deduplicated": false,
       "fault_injected": false
     },
     {
@@ -139,13 +139,13 @@
       "http_status": 200,
       "bytes": 4538,
       "sha256": "df6e0f8fac14030c1cd2d7fd49ee915f9365d49b9d833c588d121567d49c0281",
-      "fetched_at": "2026-11-24T00:01:25+08:00",
+      "fetched_at": "2026-11-24T07:53:48+08:00",
       "attempt": 1,
       "path": "raw/tw_taiex/2026-11-16/074903-holidaySchedule.json",
       "deduplicated": true,
       "fault_injected": false
     }
   ],
-  "history_points": 15,
+  "history_points": 16,
   "revisions": 0
 }
