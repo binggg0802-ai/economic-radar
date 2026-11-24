@@ -2,9 +2,9 @@
   "series": {
     "tw_taiex": {
       "consecutive_failures": 0,
-      "last_run_at": "2026-11-24T07:53:46+08:00",
-      "last_result": "ok",
-      "last_reason": "下一個交易日 2026-11-24 尚未收盤，2026-11-23 即為最新收盤",
+      "last_run_at": "2026-11-24T09:05:00+08:00",
+      "last_result": "skipped",
+      "last_reason": "無新的交易日收盤待取得（下一個交易日 2026-11-24 尚未收盤，2026-11-23 即為最新收盤）",
       "source_health": {
         "FMTQIK": {
           "name": "FMTQIK",
@@ -58,6 +58,26 @@
     }
   },
   "recent_runs": [
+    {
+      "at": "2026-11-24T09:05:00+08:00",
+      "series": "tw_taiex",
+      "trigger": "schedule",
+      "fault": null,
+      "result": "skipped",
+      "reason": "無新的交易日收盤待取得（下一個交易日 2026-11-24 尚未收盤，2026-11-23 即為最新收盤）",
+      "before": {
+        "period": "2026-11-23",
+        "value": 36811.89,
+        "status": "ok",
+        "data_version": 8
+      },
+      "after": {
+        "period": "2026-11-23",
+        "value": 36811.89,
+        "status": "ok",
+        "data_version": 8
+      }
+    },
     {
       "at": "2026-11-24T07:53:46+08:00",
       "series": "tw_taiex",
@@ -1037,27 +1057,7 @@
         "status": "pending",
         "data_version": 3
       }
-    },
-    {
-      "at": "2026-11-17T19:49:27+08:00",
-      "series": "tw_taiex",
-      "trigger": "schedule",
-      "fault": null,
-      "result": "pending",
-      "reason": "2026-11-17 已收盤，官方尚未公布收盤資料（最晚應於 2026-11-18 09:00 前取得）；目前顯示 2026-11-16 的收盤",
-      "before": {
-        "period": "2026-11-16",
-        "value": 41040.08,
-        "status": "pending",
-        "data_version": 3
-      },
-      "after": {
-        "period": "2026-11-16",
-        "value": 41040.08,
-        "status": "pending",
-        "data_version": 3
-      }
     }
   ],
-  "generated_at": "2026-11-24T07:53:48+08:00"
+  "generated_at": "2026-11-24T09:05:00+08:00"
 }
