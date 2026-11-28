@@ -1,13 +1,13 @@
 {
   "FMTQIK": {
-    "sha256": "432ddf7b5b5db71beb87b630ded66b0e0b87a129f0a6bf8f2f75df036966b3ae",
-    "path": "raw/tw_taiex/2026-11-27/075858-FMTQIK.json",
-    "saved_at": "2026-11-27T07:58:58+08:00"
+    "sha256": "b7a3eebe979ddd0105197658ae1bccc22ed83d1b30ca3ca6d739682621a94a0c",
+    "path": "raw/tw_taiex/2026-11-28/162257-FMTQIK.json",
+    "saved_at": "2026-11-28T16:22:57+08:00"
   },
   "MI_INDEX": {
-    "sha256": "28a6310a931306d8075c54da98ca77c5b82722ddac9910e7ef60f513099f667d",
-    "path": "raw/tw_taiex/2026-11-27/075858-MI_INDEX.json",
-    "saved_at": "2026-11-27T07:58:58+08:00"
+    "sha256": "574e8b0f66bd9bbc0d68f630a9abad4d99854641b9810f62f0421560ce7848f0",
+    "path": "raw/tw_taiex/2026-11-28/162257-MI_INDEX.json",
+    "saved_at": "2026-11-28T16:22:57+08:00"
   },
   "holidaySchedule": {
     "sha256": "df6e0f8fac14030c1cd2d7fd49ee915f9365d49b9d833c588d121567d49c0281",
